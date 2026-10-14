@@ -6,7 +6,7 @@
 <title>phase. design scaffold</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Vollkorn:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet">
 <style>
 /* =====================================================================
    APP STYLES: copied 1:1 from index.html. Restyle these.
@@ -15,11 +15,13 @@
 
 :root{
   --bg:#F4F3F0; --card:#FFFFFF; --ink:#141414; --ink2:#4E4C48; --muted:#8B8984; --line:#E6E3DD; --chip:#ECEAE5;
-  --menstrual:#C8462E; --follicular:#14906E; --ovulatory:#BF8418; --luteal:#6E5BC8; --premenstrual:#C0508A;
-  --serif:'Vollkorn',Georgia,serif; --sans:'DM Sans',system-ui,-apple-system,sans-serif;
+  /* Phase colors mark the ring, chart bands, bars and dots. --period is the stronger red for period UI with white text. */
+  --menstrual:#EA6D56; --follicular:#27B892; --ovulatory:#E8A127; --luteal:#8979E6; --premenstrual:#DB6EA5; --period:#C8462E;
+  --serif:'Source Serif 4',Georgia,serif; --sans:'DM Sans',system-ui,-apple-system,sans-serif;
   --r:28px;
 }
-[data-theme=dark]{ --bg:#000000; --card:#1A1A19; --ink:#F2F1EE; --ink2:#C4C1BB; --muted:#85837E; --line:#2A2928; --chip:#232322; }
+[data-theme=dark]{ --bg:#000000; --card:#1A1A19; --ink:#F2F1EE; --ink2:#C4C1BB; --muted:#85837E; --line:#2A2928; --chip:#232322;
+  --menstrual:#DC604A; --follicular:#00A883; --ovulatory:#C78200; --luteal:#8675E3; --premenstrual:#CD6199; }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;font-variant-numeric:lining-nums}
 body{transition:background .4s,color .4s}
@@ -38,7 +40,7 @@ a{color:inherit}
 .icon-btn{width:42px;height:42px;border-radius:50%;background:var(--card);display:grid;place-items:center}
 .streak{height:42px;padding:0 14px 0 10px;border-radius:21px;background:var(--card);display:flex;align-items:center;gap:6px;font-weight:600}
 .streak .ic{width:20px;height:20px}
-.streak.on .ic{stroke:var(--menstrual)}
+.streak.on .ic{stroke:var(--period)}
 
 .card{background:var(--card);border-radius:var(--r);padding:22px}
 .card.invert{background:var(--ink);color:var(--bg)}
@@ -55,7 +57,7 @@ a{color:inherit}
 .btn.block{width:100%}
 .btn.ghost{background:var(--chip);color:var(--ink)}
 .btn.light{background:var(--bg);color:var(--ink)}
-.btn.period{background:var(--menstrual);color:#fff}
+.btn.period{background:var(--period);color:#fff}
 .btn[disabled]{opacity:.35;pointer-events:none}
 .link{color:var(--muted);font-weight:500;text-decoration:underline;text-underline-offset:3px;padding:8px}
 
@@ -67,8 +69,8 @@ a{color:inherit}
 .wd.today b{box-shadow:inset 0 0 0 1.5px var(--ink)}
 .wd .mk{width:5px;height:5px;border-radius:50%;background:transparent}
 .wd .mk.on{background:var(--ink)}
-.period-fill{background:var(--menstrual)!important;color:#fff!important;box-shadow:none!important}
-.pred-ring{outline:1.5px dashed var(--menstrual);outline-offset:-1.5px;box-shadow:none!important}
+.period-fill{background:var(--period)!important;color:#fff!important;box-shadow:none!important}
+.pred-ring{outline:1.5px dashed var(--period);outline-offset:-1.5px;background:color-mix(in srgb,var(--menstrual) 22%,transparent);box-shadow:none!important}
 .fertile-fill{background:color-mix(in srgb,var(--ovulatory) 18%,transparent)}
 .ov-ring{box-shadow:inset 0 0 0 2px var(--ovulatory)!important}
 
@@ -103,7 +105,9 @@ details.mild{background:none;padding:0;border-radius:0;margin-top:18px;border-to
 details.mild summary{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--muted);padding:14px 0 4px}
 details.mild summary:after{font-size:20px}
 details.mild ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink2)}
-.lift{background:color-mix(in srgb,var(--tint) 10%,var(--card))}
+.lift{background:color-mix(in srgb,var(--tint) 28%,var(--card))}
+/* Labels use ink2: muted is too light on the tint. */
+.lift .eyebrow,.lift .next span{color:var(--ink2)}
 .lift .eyebrow .ic{width:16px;height:16px}
 .lift h2{margin-top:12px}
 .next{display:flex;flex-direction:column;gap:2px;margin-top:16px;padding:12px 16px;border-radius:16px;background:var(--card)}
@@ -163,7 +167,7 @@ details.mild ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:col
 .mgrid .band{height:6px;border-radius:3px}
 .mgrid .c{aspect-ratio:1;border-radius:50%;min-width:0}
 .mgrid .c.empty{box-shadow:inset 0 0 0 1px var(--line)}
-.mgrid .c.p{box-shadow:0 0 0 1.5px var(--menstrual)}
+.mgrid .c.p{box-shadow:0 0 0 1.5px var(--period)}
 .axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;padding-left:calc(var(--lw) + 8px)}
 .bars{display:flex;flex-direction:column;gap:12px;margin-top:16px}
 .bar-row{display:grid;grid-template-columns:96px 1fr 36px;align-items:center;gap:10px;font-size:14px}
@@ -214,7 +218,7 @@ details .body h4{margin:6px 0 0;font-size:14px;color:var(--ink);display:flex;gap
 .chip.on{background:var(--ink);color:var(--bg)}
 .seg{display:flex;background:var(--card);border-radius:22px;padding:4px;margin-top:10px}
 .seg button{flex:1;padding:10px 0;border-radius:18px;font-size:13.5px;font-weight:500;color:var(--ink2)}
-.seg button.on{background:var(--menstrual);color:#fff}
+.seg button.on{background:var(--period);color:#fff}
 .seg button.on.none{background:var(--ink);color:var(--bg)}
 .slider-wrap{margin-top:56px;text-align:center}
 .slider-wrap .big{font-family:var(--serif);font-size:28px;margin-bottom:28px;min-height:40px}
@@ -226,7 +230,7 @@ textarea{width:100%;flex:1;min-height:220px;margin-top:20px;border:0;outline:non
 textarea::placeholder{color:var(--muted)}
 .done-step{align-items:center;text-align:center;justify-content:center}
 .done-step .flame{width:76px;height:76px;border-radius:50%;background:var(--card);display:grid;place-items:center;margin-bottom:10px}
-.done-step .flame .ic{width:36px;height:36px;stroke:var(--menstrual)}
+.done-step .flame .ic{width:36px;height:36px;stroke:var(--period)}
 .done-step .echo-line{font-family:var(--serif);font-size:19px;color:var(--ink2);margin-top:18px;max-width:330px}
 .date-in{margin-top:36px;width:100%;height:60px;border-radius:20px;border:0;background:var(--card);color:var(--ink);font:500 20px var(--sans);padding:0 18px}
 .stepper{display:flex;align-items:center;justify-content:center;gap:28px;margin-top:48px}
@@ -247,7 +251,7 @@ textarea::placeholder{color:var(--muted)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line);min-height:56px;width:100%;text-align:left}
 .row:last-child{border-bottom:0}
 .row .r{color:var(--muted);display:flex;align-items:center;gap:10px}
-.row.danger{color:var(--menstrual)}
+.row.danger{color:var(--period)}
 .mini-step{display:flex;align-items:center;gap:6px}
 .mini-step button{width:32px;height:32px;border-radius:50%;background:var(--chip);color:var(--ink);font-size:18px}
 .mini-step span{min-width:26px;text-align:center;color:var(--ink);font-weight:600}
@@ -381,15 +385,15 @@ textarea::placeholder{color:var(--muted)}
 <div class="spec"><div class="spec-head"><code>.progress</code><span>check-in progress, step 3 of 5</span></div><div class="spec-body"><div class="progress"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div></div>
 <div class="spec"><div class="spec-head"><code>.eyebrow · .dot</code><span>section labels</span></div><div class="spec-body"><div class="eyebrow"><span class="dot" style="background:var(--luteal)"></span>Luteal phase · day 17</div><div class="eyebrow"><svg class="ic" viewBox="0 0 24 24"><path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 7v3M5.6 10.6l1.8 1.8M18.4 10.6l-1.8 1.8"/></svg> Looking ahead</div></div></div>
 <div class="spec"><div class="spec-head"><code>.week</code><span>week strip: logged period, expected, fertile, ovulation, today, check-in dot</span></div><div class="spec-body"><div class="week"><button class="wd " data-a="day" data-v="2026-10-11">
-      S<b class="fertile-fill">11</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-12">
-      M<b class="ov-ring fertile-fill">12</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-13">
-      T<b class="fertile-fill">13</b><span class="mk on"></span></button><button class="wd today" data-a="day" data-v="2026-10-14">
+      S<b class="">11</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-12">
+      M<b class="">12</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-13">
+      T<b class="">13</b><span class="mk on"></span></button><button class="wd today" data-a="day" data-v="2026-10-14">
       W<b class="">14</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-15">
       T<b class="">15</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-16">
       F<b class="">16</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-17">
       S<b class="">17</b><span class="mk "></span></button></div></div></div>
 <div class="spec"><div class="spec-head"><code>.ring</code><span>cycle ring: phase arcs, fertile arc, today marker</span></div><div class="spec-body"><div class="hero"><svg class="ring" viewBox="0 0 300 300" role="img" aria-label="Cycle day 17 of about 29. Luteal phase. Period in ~13 days.">
-    <path d="M158.99 22.32 A128 128 0 0 1 258.60 82.25" stroke="var(--menstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M267.02 98.14 A128 128 0 0 1 199.29 268.13" stroke="var(--follicular)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M182.25 273.87 A128 128 0 0 1 117.75 273.87" stroke="var(--ovulatory)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M100.71 268.13 A128 128 0 0 1 22.02 152.07" stroke="var(--luteal)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M22.99 134.11 A128 128 0 0 1 141.01 22.32" stroke="var(--premenstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M250.33 189.97 A108 108 0 0 1 115.52 252.35" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>
+    <path d="M158.99 22.32 A128 128 0 0 1 258.60 82.25" stroke="var(--menstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M267.02 98.14 A128 128 0 0 1 199.29 268.13" stroke="var(--follicular)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M182.25 273.87 A128 128 0 0 1 117.75 273.87" stroke="var(--ovulatory)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M100.71 268.13 A128 128 0 0 1 22.02 152.07" stroke="var(--luteal)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M22.99 134.11 A128 128 0 0 1 141.01 22.32" stroke="var(--premenstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M250.33 189.97 A108 108 0 0 1 115.52 252.35" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".75"/>
     <circle cx="96.25419500028613" cy="266.1696537178825" r="11" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
     <text x="150" y="98" text-anchor="middle" class="lab">CYCLE DAY</text>
     <text x="150" y="172" text-anchor="middle" class="num">17</text>
@@ -449,7 +453,7 @@ textarea::placeholder{color:var(--muted)}
       <div class="stepper"><button data-a="obN" data-v="L:-1">−</button><div class="n">28</div><button data-a="obN" data-v="L:1">+</button></div><div class="stepper-unit">days</div></div></div><div class="flow-foot"><button class="btn ghost" data-a="ob" data-v="-1" aria-label="Back"><svg class="ic" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button class="btn block" data-a="ob" data-v="1">Continue</button></div></div></div><figcaption>Onboarding · question</figcaption></figure>
 <figure class="frame"><div class="device"><main class="screen">
     <header class="top">
-      <div><div class="eyebrow">Wednesday 14 October</div><h1 class="hello">Good morning.</h1></div>
+      <div><div class="eyebrow">Wednesday 14 October</div><h1 class="hello">Good afternoon.</h1></div>
       <div class="top-actions">
         <button class="streak on" data-a="tab" data-v="journey" aria-label="7 day streak"><svg class="ic" viewBox="0 0 24 24"><path d="M12 21.5c3.9 0 6.8-2.6 6.8-6.5 0-3.5-2.5-6-4.4-8.3-.5 1.9-1.5 3-2.8 3.5.3-3.1-1.1-5.8-3.5-7.7.2 3.3-1.7 5.3-3.2 7.4-1.2 1.6-1.7 3.4-1.7 5.1 0 3.9 2.9 6.5 6.8 6.5z"/></svg><span>7</span></button>
         <button class="icon-btn" data-a="settings" aria-label="Settings"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button>
@@ -457,15 +461,15 @@ textarea::placeholder{color:var(--muted)}
     </header>
     <div class="banner"><span>You are looking at sample data.</span><button class="link" data-a="clearSample">Start fresh</button></div>
     <div class="week"><button class="wd " data-a="day" data-v="2026-10-11">
-      S<b class="fertile-fill">11</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-12">
-      M<b class="ov-ring fertile-fill">12</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-13">
-      T<b class="fertile-fill">13</b><span class="mk on"></span></button><button class="wd today" data-a="day" data-v="2026-10-14">
+      S<b class="">11</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-12">
+      M<b class="">12</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-13">
+      T<b class="">13</b><span class="mk on"></span></button><button class="wd today" data-a="day" data-v="2026-10-14">
       W<b class="">14</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-15">
       T<b class="">15</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-16">
       F<b class="">16</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-17">
       S<b class="">17</b><span class="mk "></span></button></div>
     <section class="hero"><svg class="ring" viewBox="0 0 300 300" role="img" aria-label="Cycle day 17 of about 29. Luteal phase. Period in ~13 days.">
-    <path d="M158.99 22.32 A128 128 0 0 1 258.60 82.25" stroke="var(--menstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M267.02 98.14 A128 128 0 0 1 199.29 268.13" stroke="var(--follicular)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M182.25 273.87 A128 128 0 0 1 117.75 273.87" stroke="var(--ovulatory)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M100.71 268.13 A128 128 0 0 1 22.02 152.07" stroke="var(--luteal)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M22.99 134.11 A128 128 0 0 1 141.01 22.32" stroke="var(--premenstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M250.33 189.97 A108 108 0 0 1 115.52 252.35" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>
+    <path d="M158.99 22.32 A128 128 0 0 1 258.60 82.25" stroke="var(--menstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M267.02 98.14 A128 128 0 0 1 199.29 268.13" stroke="var(--follicular)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M182.25 273.87 A128 128 0 0 1 117.75 273.87" stroke="var(--ovulatory)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M100.71 268.13 A128 128 0 0 1 22.02 152.07" stroke="var(--luteal)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M22.99 134.11 A128 128 0 0 1 141.01 22.32" stroke="var(--premenstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M250.33 189.97 A108 108 0 0 1 115.52 252.35" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".75"/>
     <circle cx="96.25419500028613" cy="266.1696537178825" r="11" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
     <text x="150" y="98" text-anchor="middle" class="lab">CYCLE DAY</text>
     <text x="150" y="172" text-anchor="middle" class="num">17</text>
@@ -581,8 +585,8 @@ textarea::placeholder{color:var(--muted)}
         <button class="icon-btn" style="background:var(--chip)" data-a="month" data-v="1" aria-label="Next month"><svg class="ic" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="cal"><div class="dow">M</div><div class="dow">T</div><div class="dow">W</div><div class="dow">T</div><div class="dow">F</div><div class="dow">S</div><div class="dow">S</div><div class="cd out"><b></b></div><div class="cd out"><b></b></div><div class="cd out"><b></b></div><button class="cd " data-a="day" data-v="2026-10-01"><b class="period-fill">1</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-02"><b class="period-fill">2</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-03"><b class="">3</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-04"><b class="">4</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-05"><b class="">5</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-06"><b class="">6</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-07"><b class="fertile-fill">7</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-08"><b class="fertile-fill">8</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-09"><b class="fertile-fill">9</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-10"><b class="fertile-fill">10</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-11"><b class="fertile-fill">11</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-12"><b class="ov-ring fertile-fill">12</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-13"><b class="fertile-fill">13</b><span class="mk on"></span></button><button class="cd today" data-a="day" data-v="2026-10-14"><b class="">14</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-15"><b class="">15</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-16"><b class="">16</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-17"><b class="">17</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-18"><b class="">18</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-19"><b class="">19</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-20"><b class="">20</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-21"><b class="">21</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-22"><b class="">22</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-23"><b class="">23</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-24"><b class="">24</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-25"><b class="">25</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-26"><b class="">26</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-27"><b class="pred-ring">27</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-28"><b class="pred-ring">28</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-29"><b class="pred-ring">29</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-30"><b class="pred-ring">30</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-31"><b class="pred-ring">31</b><span class="mk "></span></button></div>
       <div class="keys">
-        <span><b style="background:var(--menstrual)"></b>Period</span>
-        <span><b style="outline:1.5px dashed var(--menstrual);outline-offset:-1.5px"></b>Expected</span>
+        <span><b style="background:var(--period)"></b>Period</span>
+        <span><b class="pred-ring"></b>Expected</span>
         <span><b class="fertile-fill"></b>Fertile window</span><span><b style="box-shadow:inset 0 0 0 2px var(--ovulatory)"></b>Ovulation</span>
         <span><b style="width:5px;height:5px;background:var(--ink)"></b>Check-in</span>
       </div>
@@ -598,8 +602,8 @@ textarea::placeholder{color:var(--muted)}
         <button class="icon-btn" style="background:var(--chip)" data-a="month" data-v="1" aria-label="Next month"><svg class="ic" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="cal"><div class="dow">M</div><div class="dow">T</div><div class="dow">W</div><div class="dow">T</div><div class="dow">F</div><div class="dow">S</div><div class="dow">S</div><div class="cd out"><b></b></div><div class="cd out"><b></b></div><div class="cd out"><b></b></div><button class="cd " data-a="day" data-v="2026-10-01"><b class="period-fill">1</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-02"><b class="period-fill">2</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-03"><b class="">3</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-04"><b class="">4</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-05"><b class="">5</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-06"><b class="">6</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-07"><b class="fertile-fill">7</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-08"><b class="fertile-fill">8</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-09"><b class="fertile-fill">9</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-10"><b class="fertile-fill">10</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-11"><b class="fertile-fill">11</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-12"><b class="ov-ring fertile-fill">12</b><span class="mk on"></span></button><button class="cd " data-a="day" data-v="2026-10-13"><b class="fertile-fill">13</b><span class="mk on"></span></button><button class="cd today" data-a="day" data-v="2026-10-14"><b class="">14</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-15"><b class="">15</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-16"><b class="">16</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-17"><b class="">17</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-18"><b class="">18</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-19"><b class="">19</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-20"><b class="">20</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-21"><b class="">21</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-22"><b class="">22</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-23"><b class="">23</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-24"><b class="">24</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-25"><b class="">25</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-26"><b class="">26</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-27"><b class="pred-ring">27</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-28"><b class="pred-ring">28</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-29"><b class="pred-ring">29</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-30"><b class="pred-ring">30</b><span class="mk "></span></button><button class="cd " data-a="day" data-v="2026-10-31"><b class="pred-ring">31</b><span class="mk "></span></button></div>
       <div class="keys">
-        <span><b style="background:var(--menstrual)"></b>Period</span>
-        <span><b style="outline:1.5px dashed var(--menstrual);outline-offset:-1.5px"></b>Expected</span>
+        <span><b style="background:var(--period)"></b>Period</span>
+        <span><b class="pred-ring"></b>Expected</span>
         <span><b class="fertile-fill"></b>Fertile window</span><span><b style="box-shadow:inset 0 0 0 2px var(--ovulatory)"></b>Ovulation</span>
         <span><b style="width:5px;height:5px;background:var(--ink)"></b>Check-in</span>
       </div>
@@ -643,7 +647,7 @@ textarea::placeholder{color:var(--muted)}
     </div>
     <div class="axis" style="--lw:44px"><span>Day 1</span><span>15</span><span>30</span></div>
     <div class="legend" style="margin-top:12px"><span>Low</span><span class="dot" style="background:color-mix(in srgb,var(--ink) 16%,transparent)"></span><span class="dot" style="background:color-mix(in srgb,var(--ink) 34%,transparent)"></span><span class="dot" style="background:color-mix(in srgb,var(--ink) 55.00000000000001%,transparent)"></span><span class="dot" style="background:color-mix(in srgb,var(--ink) 78%,transparent)"></span><span class="dot" style="background:color-mix(in srgb,var(--ink) 100%,transparent)"></span><span>High</span>
-      <span style="margin-left:8px"><span class="dot" style="box-shadow:0 0 0 1.5px var(--menstrual)"></span>Period day</span></div>
+      <span style="margin-left:8px"><span class="dot" style="box-shadow:0 0 0 1.5px var(--period)"></span>Period day</span></div>
   </section><section class="card">
     <h2>Mood by phase</h2><p class="lede">Your average mood in each phase, on a scale of 1 to 5.</p>
     <div class="bars"><div class="bar-row"><span>Menstrual</span><div class="track" title="3.0 from 20 check-ins"><div class="fill" style="width:60%;background:var(--menstrual)"></div></div><span class="val">3.0</span></div><div class="bar-row"><span>Follicular</span><div class="track" title="3.9 from 30 check-ins"><div class="fill" style="width:78.66666666666666%;background:var(--follicular)"></div></div><span class="val">3.9</span></div><div class="bar-row"><span>Ovulation</span><div class="track" title="4.3 from 12 check-ins"><div class="fill" style="width:85%;background:var(--ovulatory)"></div></div><span class="val">4.3</span></div><div class="bar-row"><span>Luteal</span><div class="track" title="3.4 from 22 check-ins"><div class="fill" style="width:67.27272727272727%;background:var(--luteal)"></div></div><span class="val">3.4</span></div><div class="bar-row"><span>Late luteal</span><div class="track" title="2.5 from 23 check-ins"><div class="fill" style="width:49.565217391304344%;background:var(--premenstrual)"></div></div><span class="val">2.5</span></div></div>
@@ -725,7 +729,7 @@ textarea::placeholder{color:var(--muted)}
   </main><nav class="tabbar"><button class="tab " data-a="tab" data-v="today"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="3.5" r="2" fill="currentColor"/></svg>Today</button><button class="tab " data-a="tab" data-v="calendar"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendar</button><button class="tab " data-a="tab" data-v="journey"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4v16h16M8 15l3.5-4 3 2.5L19.5 8"/></svg>Journey</button><button class="tab on" data-a="tab" data-v="learn"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H20"/></svg>Learn</button></nav></div><figcaption>Learn</figcaption></figure>
 <figure class="frame"><div class="device fixed"><main class="screen">
     <header class="top">
-      <div><div class="eyebrow">Wednesday 14 October</div><h1 class="hello">Good morning.</h1></div>
+      <div><div class="eyebrow">Wednesday 14 October</div><h1 class="hello">Good afternoon.</h1></div>
       <div class="top-actions">
         <button class="streak on" data-a="tab" data-v="journey" aria-label="7 day streak"><svg class="ic" viewBox="0 0 24 24"><path d="M12 21.5c3.9 0 6.8-2.6 6.8-6.5 0-3.5-2.5-6-4.4-8.3-.5 1.9-1.5 3-2.8 3.5.3-3.1-1.1-5.8-3.5-7.7.2 3.3-1.7 5.3-3.2 7.4-1.2 1.6-1.7 3.4-1.7 5.1 0 3.9 2.9 6.5 6.8 6.5z"/></svg><span>7</span></button>
         <button class="icon-btn" data-a="settings" aria-label="Settings"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button>
@@ -733,15 +737,15 @@ textarea::placeholder{color:var(--muted)}
     </header>
     <div class="banner"><span>You are looking at sample data.</span><button class="link" data-a="clearSample">Start fresh</button></div>
     <div class="week"><button class="wd " data-a="day" data-v="2026-10-11">
-      S<b class="fertile-fill">11</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-12">
-      M<b class="ov-ring fertile-fill">12</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-13">
-      T<b class="fertile-fill">13</b><span class="mk on"></span></button><button class="wd today" data-a="day" data-v="2026-10-14">
+      S<b class="">11</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-12">
+      M<b class="">12</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-13">
+      T<b class="">13</b><span class="mk on"></span></button><button class="wd today" data-a="day" data-v="2026-10-14">
       W<b class="">14</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-15">
       T<b class="">15</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-16">
       F<b class="">16</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-17">
       S<b class="">17</b><span class="mk "></span></button></div>
     <section class="hero"><svg class="ring" viewBox="0 0 300 300" role="img" aria-label="Cycle day 17 of about 29. Luteal phase. Period in ~13 days.">
-    <path d="M158.99 22.32 A128 128 0 0 1 258.60 82.25" stroke="var(--menstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M267.02 98.14 A128 128 0 0 1 199.29 268.13" stroke="var(--follicular)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M182.25 273.87 A128 128 0 0 1 117.75 273.87" stroke="var(--ovulatory)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M100.71 268.13 A128 128 0 0 1 22.02 152.07" stroke="var(--luteal)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M22.99 134.11 A128 128 0 0 1 141.01 22.32" stroke="var(--premenstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M250.33 189.97 A108 108 0 0 1 115.52 252.35" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>
+    <path d="M158.99 22.32 A128 128 0 0 1 258.60 82.25" stroke="var(--menstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M267.02 98.14 A128 128 0 0 1 199.29 268.13" stroke="var(--follicular)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M182.25 273.87 A128 128 0 0 1 117.75 273.87" stroke="var(--ovulatory)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M100.71 268.13 A128 128 0 0 1 22.02 152.07" stroke="var(--luteal)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M22.99 134.11 A128 128 0 0 1 141.01 22.32" stroke="var(--premenstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M250.33 189.97 A108 108 0 0 1 115.52 252.35" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".75"/>
     <circle cx="96.25419500028613" cy="266.1696537178825" r="11" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
     <text x="150" y="98" text-anchor="middle" class="lab">CYCLE DAY</text>
     <text x="150" y="172" text-anchor="middle" class="num">17</text>
@@ -810,7 +814,7 @@ textarea::placeholder{color:var(--muted)}
   </div></div><figcaption>Settings sheet</figcaption></figure>
 <figure class="frame"><div class="device fixed"><main class="screen">
     <header class="top">
-      <div><div class="eyebrow">Wednesday 14 October</div><h1 class="hello">Good morning.</h1></div>
+      <div><div class="eyebrow">Wednesday 14 October</div><h1 class="hello">Good afternoon.</h1></div>
       <div class="top-actions">
         <button class="streak on" data-a="tab" data-v="journey" aria-label="7 day streak"><svg class="ic" viewBox="0 0 24 24"><path d="M12 21.5c3.9 0 6.8-2.6 6.8-6.5 0-3.5-2.5-6-4.4-8.3-.5 1.9-1.5 3-2.8 3.5.3-3.1-1.1-5.8-3.5-7.7.2 3.3-1.7 5.3-3.2 7.4-1.2 1.6-1.7 3.4-1.7 5.1 0 3.9 2.9 6.5 6.8 6.5z"/></svg><span>7</span></button>
         <button class="icon-btn" data-a="settings" aria-label="Settings"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button>
@@ -818,15 +822,15 @@ textarea::placeholder{color:var(--muted)}
     </header>
     <div class="banner"><span>You are looking at sample data.</span><button class="link" data-a="clearSample">Start fresh</button></div>
     <div class="week"><button class="wd " data-a="day" data-v="2026-10-11">
-      S<b class="fertile-fill">11</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-12">
-      M<b class="ov-ring fertile-fill">12</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-13">
-      T<b class="fertile-fill">13</b><span class="mk on"></span></button><button class="wd today" data-a="day" data-v="2026-10-14">
+      S<b class="">11</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-12">
+      M<b class="">12</b><span class="mk on"></span></button><button class="wd " data-a="day" data-v="2026-10-13">
+      T<b class="">13</b><span class="mk on"></span></button><button class="wd today" data-a="day" data-v="2026-10-14">
       W<b class="">14</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-15">
       T<b class="">15</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-16">
       F<b class="">16</b><span class="mk "></span></button><button class="wd " data-a="day" data-v="2026-10-17">
       S<b class="">17</b><span class="mk "></span></button></div>
     <section class="hero"><svg class="ring" viewBox="0 0 300 300" role="img" aria-label="Cycle day 17 of about 29. Luteal phase. Period in ~13 days.">
-    <path d="M158.99 22.32 A128 128 0 0 1 258.60 82.25" stroke="var(--menstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M267.02 98.14 A128 128 0 0 1 199.29 268.13" stroke="var(--follicular)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M182.25 273.87 A128 128 0 0 1 117.75 273.87" stroke="var(--ovulatory)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M100.71 268.13 A128 128 0 0 1 22.02 152.07" stroke="var(--luteal)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M22.99 134.11 A128 128 0 0 1 141.01 22.32" stroke="var(--premenstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M250.33 189.97 A108 108 0 0 1 115.52 252.35" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>
+    <path d="M158.99 22.32 A128 128 0 0 1 258.60 82.25" stroke="var(--menstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M267.02 98.14 A128 128 0 0 1 199.29 268.13" stroke="var(--follicular)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M182.25 273.87 A128 128 0 0 1 117.75 273.87" stroke="var(--ovulatory)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M100.71 268.13 A128 128 0 0 1 22.02 152.07" stroke="var(--luteal)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M22.99 134.11 A128 128 0 0 1 141.01 22.32" stroke="var(--premenstrual)" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M250.33 189.97 A108 108 0 0 1 115.52 252.35" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".75"/>
     <circle cx="96.25419500028613" cy="266.1696537178825" r="11" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
     <text x="150" y="98" text-anchor="middle" class="lab">CYCLE DAY</text>
     <text x="150" y="172" text-anchor="middle" class="num">17</text>
