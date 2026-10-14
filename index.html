@@ -1,0 +1,1367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="phase.">
+<meta name="theme-color" content="#F4F3F0">
+<title>phase.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Vollkorn:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F3F0; --card:#FFFFFF; --ink:#141414; --ink2:#4E4C48; --muted:#8B8984; --line:#E6E3DD; --chip:#ECEAE5;
+  --menstrual:#C8462E; --follicular:#14906E; --ovulatory:#BF8418; --luteal:#6E5BC8; --premenstrual:#C0508A;
+  --serif:'Vollkorn',Georgia,serif; --sans:'DM Sans',system-ui,-apple-system,sans-serif;
+  --r:28px;
+}
+[data-theme=dark]{ --bg:#000000; --card:#1A1A19; --ink:#F2F1EE; --ink2:#C4C1BB; --muted:#85837E; --line:#2A2928; --chip:#232322; }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;font-variant-numeric:lining-nums}
+body{transition:background .4s,color .4s}
+body.locked{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+h1,h2,h3,p{margin:0}
+a{color:inherit}
+.i svg,.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block}
+
+.screen{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 110px);display:flex;flex-direction:column;gap:16px;animation:rise .45s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.top{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 4px 0}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:8px}
+.hello{font-family:var(--serif);font-weight:500;font-size:32px;letter-spacing:-.01em;line-height:1.15;margin-top:4px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{width:42px;height:42px;border-radius:50%;background:var(--card);display:grid;place-items:center}
+.streak{height:42px;padding:0 14px 0 10px;border-radius:21px;background:var(--card);display:flex;align-items:center;gap:6px;font-weight:600}
+.streak .ic{width:20px;height:20px}
+.streak.on .ic{stroke:var(--menstrual)}
+
+.card{background:var(--card);border-radius:var(--r);padding:22px}
+.card.invert{background:var(--ink);color:var(--bg)}
+.card.invert .eyebrow{color:color-mix(in srgb,var(--bg) 60%,transparent)}
+.card h2{font-family:var(--serif);font-weight:500;font-size:26px;line-height:1.2;letter-spacing:-.01em}
+.card h3{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:8px}
+.lede{color:var(--ink2);margin-top:8px}
+.fine{font-size:13px;color:var(--muted);margin-top:14px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.serif{font-family:var(--serif)}
+
+.btn{height:52px;padding:0 26px;border-radius:26px;background:var(--ink);color:var(--bg);font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn.block{width:100%}
+.btn.ghost{background:var(--chip);color:var(--ink)}
+.btn.light{background:var(--bg);color:var(--ink)}
+.btn.period{background:var(--menstrual);color:#fff}
+.btn[disabled]{opacity:.35;pointer-events:none}
+.link{color:var(--muted);font-weight:500;text-decoration:underline;text-underline-offset:3px;padding:8px}
+
+/* week strip */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:var(--card);border-radius:var(--r);padding:12px 10px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.wd b{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:500;color:var(--ink);font-size:15px;position:relative}
+.wd.today{color:var(--ink);font-weight:600}
+.wd.today b{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.wd .mk{width:5px;height:5px;border-radius:50%;background:transparent}
+.wd .mk.on{background:var(--ink)}
+.period-fill{background:var(--menstrual)!important;color:#fff!important;box-shadow:none!important}
+.pred-ring{outline:1.5px dashed var(--menstrual);outline-offset:-1.5px;box-shadow:none!important}
+.fertile-fill{background:color-mix(in srgb,var(--ovulatory) 18%,transparent)}
+.ov-ring{box-shadow:inset 0 0 0 2px var(--ovulatory)!important}
+
+/* hero ring */
+.hero{display:flex;justify-content:center;padding:6px 0 0}
+.ring{width:min(300px,82vw);height:auto;overflow:visible}
+.ring .num{font-family:var(--serif);font-size:76px;font-weight:500;fill:var(--ink);letter-spacing:-.02em}
+.ring .lab{font-size:12px;letter-spacing:.12em;fill:var(--muted);font-weight:500}
+.ring .ph{font-size:17px;fill:var(--ink);font-weight:600}
+.ring .sub{font-size:14px;fill:var(--muted)}
+.center-actions{display:flex;justify-content:center;gap:10px;margin-top:-4px}
+
+/* check-in card */
+.checkin .eyebrow .ic{width:16px;height:16px}
+.checkin h2{margin:14px 0 20px}
+.checkin .done{display:flex;align-items:center;gap:14px;margin-top:14px}
+.checkin .done svg.face{width:44px;height:44px;flex:none}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font-size:13px;padding:4px 10px;border-radius:12px;background:var(--chip);color:var(--ink2)}
+.card.invert .tag{background:color-mix(in srgb,var(--bg) 14%,transparent);color:var(--bg)}
+
+/* phase card */
+.phase h2{margin-top:10px}
+.phase h3.sec{margin:24px 0 10px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cols h4{margin:0 0 8px;font-size:13.5px;font-weight:600}
+.good li{position:relative;padding-left:15px}
+.good li:before{content:'';position:absolute;left:0;top:.5em;width:6px;height:6px;border-radius:50%;background:var(--tint)}
+.helps{margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:6px;font-size:14.5px;color:var(--ink2)}
+details.mild{background:none;padding:0;border-radius:0;margin-top:18px;border-top:1px solid var(--line)}
+details.mild summary{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--muted);padding:14px 0 4px}
+details.mild summary:after{font-size:20px}
+details.mild ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink2)}
+.lift{background:color-mix(in srgb,var(--tint) 10%,var(--card))}
+.lift .eyebrow .ic{width:16px;height:16px}
+.lift h2{margin-top:12px}
+.next{display:flex;flex-direction:column;gap:2px;margin-top:16px;padding:12px 16px;border-radius:16px;background:var(--card)}
+.next span{font-size:13px;color:var(--muted)}
+.next b{font-weight:600;font-size:16px}
+.mine{margin-top:16px;font-family:var(--serif);font-size:18px;line-height:1.4}
+.mine .eyebrow{font-family:var(--sans);display:flex;margin-bottom:4px}
+.cols ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.cols li{font-size:14.5px;color:var(--ink2);line-height:1.4}
+@media (max-width:380px){.cols{grid-template-columns:1fr}}
+.hchart,.mchart{width:100%;height:auto;margin-top:16px;touch-action:pan-y;overflow:visible}
+.hchart text,.mchart text{font-size:11px;fill:var(--muted);font-family:var(--sans)}
+.hchart .tip{fill:var(--ink);font-weight:600;font-size:11.5px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:16px;border-top:2px solid var(--ink)}
+
+/* quote */
+.quote blockquote{margin:0;font-family:var(--serif);font-size:23px;line-height:1.35;font-weight:400}
+.quote cite{display:block;margin-top:14px;font-style:normal;color:var(--muted);font-size:14px}
+.echo-row{display:flex;gap:14px;align-items:center;margin-top:12px}
+.echo svg.face{width:40px;height:40px;flex:none}
+.echo p.note{font-family:var(--serif);font-style:italic;color:var(--ink2);margin-top:12px;font-size:17px}
+.banner{display:flex;justify-content:space-between;align-items:center;background:var(--chip);border-radius:18px;padding:10px 14px;font-size:14px;color:var(--ink2)}
+
+/* tab bar */
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;gap:4px;padding:6px;border-radius:32px;background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 6px 30px rgba(0,0,0,.08);z-index:5}
+.tab{width:62px;height:52px;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;color:var(--muted);font-weight:500}
+.tab .ic{width:21px;height:21px}
+.tab.on{background:var(--ink);color:var(--bg)}
+
+/* calendar */
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-head h2{font-size:24px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px 2px;text-align:center}
+.cal .dow{font-size:11px;color:var(--muted);letter-spacing:.06em;padding-bottom:6px}
+.cd{display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0}
+.cd b{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:500;font-size:15px}
+.cd.today b{font-weight:700;text-decoration:underline;text-underline-offset:4px}
+.cd .mk{width:4px;height:4px;border-radius:50%}
+.cd .mk.on{background:var(--ink)}
+.cd.out{visibility:hidden}
+.keys{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;font-size:12.5px;color:var(--muted)}
+.keys span{display:inline-flex;align-items:center;gap:6px}
+.keys b{width:14px;height:14px;border-radius:50%;display:inline-block}
+
+/* journey */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:var(--card);border-radius:22px;padding:16px 18px}
+.stat .v{font-family:var(--serif);font-size:34px;font-weight:500;line-height:1.1;margin-top:4px}
+.stat .v small{font-family:var(--sans);font-size:14px;color:var(--muted);font-weight:400;margin-left:4px}
+.stat .s{font-size:12.5px;color:var(--muted)}
+.grid-wrap{display:flex;gap:8px;margin-top:16px}
+.grid-labels{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);padding-top:9px;width:44px;flex:none}
+.grid-labels div{flex:1;display:flex;align-items:center;white-space:nowrap}
+.mgrid{flex:1;display:grid;gap:3px;min-width:0}
+.mgrid .band{height:6px;border-radius:3px}
+.mgrid .c{aspect-ratio:1;border-radius:50%;min-width:0}
+.mgrid .c.empty{box-shadow:inset 0 0 0 1px var(--line)}
+.mgrid .c.p{box-shadow:0 0 0 1.5px var(--menstrual)}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;padding-left:calc(var(--lw) + 8px)}
+.bars{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.bar-row{display:grid;grid-template-columns:96px 1fr 36px;align-items:center;gap:10px;font-size:14px}
+.bar-row .track{height:10px;border-radius:5px;background:var(--chip);overflow:hidden}
+.bar-row .fill{height:100%;border-radius:0 4px 4px 0}
+.bar-row .val{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.brings{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.brings .h{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px}
+.hist{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+.hist th{font-weight:500;color:var(--muted);text-align:left;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line)}
+.hist td{padding:9px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.note-card{border:1.5px solid var(--line);background:transparent}
+.note-card ul{margin:10px 0 0;padding-left:18px;color:var(--ink2);display:flex;flex-direction:column;gap:6px}
+.empty-state{text-align:center;padding:36px 22px}
+.empty-state h2{margin-bottom:8px}
+
+/* learn */
+details{background:var(--card);border-radius:var(--r);padding:0 22px}
+summary{list-style:none;cursor:pointer;padding:20px 0;display:flex;justify-content:space-between;align-items:center;font-family:var(--serif);font-size:21px;font-weight:500}
+summary::-webkit-details-marker{display:none}
+summary:after{content:'+';font-family:var(--sans);font-weight:300;font-size:26px;color:var(--muted);transition:transform .2s}
+details[open] summary:after{transform:rotate(45deg)}
+details .body{padding-bottom:22px;color:var(--ink2);display:flex;flex-direction:column;gap:12px;font-size:15px}
+details .body ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+details .body h4{margin:6px 0 0;font-size:14px;color:var(--ink);display:flex;gap:8px;align-items:center}
+.ev{font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:8px;background:var(--chip);color:var(--ink2);font-weight:600;margin-left:6px;white-space:nowrap}
+
+/* overlay: flow + sheet */
+.flow{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;animation:fade .3s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.flow-top{max-width:480px;width:100%;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 16px 0;display:flex;align-items:center;gap:14px}
+.progress{flex:1;display:flex;gap:5px}
+.progress i{flex:1;height:3px;border-radius:2px;background:var(--line);transition:background .3s}
+.progress i.on{background:var(--ink)}
+.flow-body{flex:1;overflow-y:auto;max-width:480px;width:100%;margin:0 auto;padding:36px 20px 20px;display:flex;flex-direction:column}
+.step{display:flex;flex-direction:column;gap:10px;flex:1}
+.step.anim{animation:rise .4s ease both}
+.step h1{font-family:var(--serif);font-weight:500;font-size:34px;line-height:1.15;letter-spacing:-.01em}
+.step .sub{color:var(--muted)}
+.flow-foot{max-width:480px;width:100%;margin:0 auto;padding:12px 20px calc(env(safe-area-inset-bottom) + 20px);display:flex;gap:10px}
+.faces{display:flex;justify-content:space-between;margin-top:40px;gap:4px}
+.faces button{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:var(--muted);flex:1;transition:transform .2s}
+.faces svg{width:54px;height:54px;transition:transform .2s;color:var(--muted)}
+.faces button.on{color:var(--ink);font-weight:600}
+.faces button.on svg{color:var(--ink);transform:scale(1.18)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.chip{padding:10px 16px;border-radius:22px;background:var(--card);font-size:15px;font-weight:500;transition:background .15s,color .15s}
+.chip.on{background:var(--ink);color:var(--bg)}
+.seg{display:flex;background:var(--card);border-radius:22px;padding:4px;margin-top:10px}
+.seg button{flex:1;padding:10px 0;border-radius:18px;font-size:13.5px;font-weight:500;color:var(--ink2)}
+.seg button.on{background:var(--menstrual);color:#fff}
+.seg button.on.none{background:var(--ink);color:var(--bg)}
+.slider-wrap{margin-top:56px;text-align:center}
+.slider-wrap .big{font-family:var(--serif);font-size:28px;margin-bottom:28px;min-height:40px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:var(--line);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--ink);border:4px solid var(--bg);box-shadow:0 0 0 1.5px var(--ink)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--ink);border:4px solid var(--bg)}
+.ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:12px}
+textarea{width:100%;flex:1;min-height:220px;margin-top:20px;border:0;outline:none;resize:none;background:transparent;color:var(--ink);font-family:var(--serif);font-size:20px;line-height:1.5}
+textarea::placeholder{color:var(--muted)}
+.done-step{align-items:center;text-align:center;justify-content:center}
+.done-step .flame{width:76px;height:76px;border-radius:50%;background:var(--card);display:grid;place-items:center;margin-bottom:10px}
+.done-step .flame .ic{width:36px;height:36px;stroke:var(--menstrual)}
+.done-step .echo-line{font-family:var(--serif);font-size:19px;color:var(--ink2);margin-top:18px;max-width:330px}
+.date-in{margin-top:36px;width:100%;height:60px;border-radius:20px;border:0;background:var(--card);color:var(--ink);font:500 20px var(--sans);padding:0 18px}
+.stepper{display:flex;align-items:center;justify-content:center;gap:28px;margin-top:48px}
+.stepper button{width:56px;height:56px;border-radius:50%;background:var(--card);font-size:26px;font-weight:300}
+.stepper .n{font-family:var(--serif);font-size:72px;font-weight:500;min-width:110px;text-align:center;line-height:1}
+.stepper-unit{text-align:center;color:var(--muted);margin-top:6px}
+.brand{font-family:var(--serif);font-size:56px;font-weight:500;letter-spacing:-.02em}
+
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20}
+.backdrop.anim{animation:fade .25s both}
+.sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;max-height:88vh;overflow-y:auto;background:var(--bg);border-radius:28px 28px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom) + 24px);z-index:21}
+.sheet.anim{animation:up .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes up{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+.sheet h2{font-family:var(--serif);font-weight:500;font-size:26px;padding:0 6px}
+.sheet .meta{color:var(--muted);padding:2px 6px 14px;display:flex;align-items:center;gap:8px}
+.list{background:var(--card);border-radius:22px;overflow:hidden;margin-top:12px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line);min-height:56px;width:100%;text-align:left}
+.row:last-child{border-bottom:0}
+.row .r{color:var(--muted);display:flex;align-items:center;gap:10px}
+.row.danger{color:var(--menstrual)}
+.mini-step{display:flex;align-items:center;gap:6px}
+.mini-step button{width:32px;height:32px;border-radius:50%;background:var(--chip);color:var(--ink);font-size:18px}
+.mini-step span{min-width:26px;text-align:center;color:var(--ink);font-weight:600}
+.pill-seg{display:flex;background:var(--chip);border-radius:16px;padding:3px}
+.pill-seg button{padding:6px 10px;border-radius:13px;font-size:13px;color:var(--ink2)}
+.pill-seg button.on{background:var(--card);color:var(--ink);font-weight:600}
+.ask-backdrop{z-index:30}
+.ask{z-index:31;text-align:center}
+.ask p{color:var(--ink2);margin:8px 6px 20px}
+.ask .btn{margin-top:10px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 90px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:18px;font-size:14px;z-index:40;animation:rise .3s both;max-width:90vw}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="overlay"></div>
+<input type="file" id="importFile" accept="application/json" hidden>
+<script>
+'use strict';
+
+/* ---------- dates (all dates are local 'YYYY-MM-DD' strings) ---------- */
+const pad2 = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
+const diff = (a, b) => Math.round((parse(b) - parse(a)) / 864e5); // days from a to b
+const today = () => iso(new Date());
+const fmt = (s, o) => parse(s).toLocaleDateString('en-GB', o);
+const fmtLong = s => fmt(s, { weekday: 'long', day: 'numeric', month: 'long' });
+const fmtShort = s => fmt(s, { day: 'numeric', month: 'short' });
+const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+const pick = (arr, seed) => arr[hash(seed) % arr.length];
+
+/* ---------- storage ---------- */
+const KEY = 'phase.v1';
+const fresh = () => ({ onboarded: false, settings: { cycleLength: 28, periodLength: 5, theme: 'auto', hormonalBC: false, sample: false }, periods: [], logs: {} });
+let db;
+try { db = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch { db = fresh(); }
+let ver = 0;
+function save() {
+  ver++;
+  try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { toast('Could not save. Storage may be full or blocked.'); }
+}
+
+/* ---------- content ---------- */
+const PHASE_KEYS = ['menstrual', 'follicular', 'ovulatory', 'luteal', 'premenstrual'];
+// good = what is on her side, helps = evidence-backed self-care, hard = what may come up.
+// Claims follow the evidence: weak findings are phrased as "many/some people".
+const PHASES = {
+  menstrual: {
+    name: 'Menstrual', theme: 'On rest',
+    hormones: 'Estrogen and progesterone are at their lowest. FSH is already rising to prepare the next egg.',
+    good: {
+      body: ['Cramps peak early. For most people they ease by day 3.', 'Toward the end of your period, estrogen starts to climb again.'],
+      mind: ['Premenstrual tension usually lifts within about 4 days of bleeding.', 'Turning inward is fine. Rest is a good plan.'],
+    },
+    helps: ['Heat on your belly or lower back eases cramps.', 'Painkillers like ibuprofen work best taken early, if they are safe for you.', 'Gentle movement can help.'],
+    hard: ['Cramps, mostly on days 1 and 2.', 'Lower energy, especially with heavy flow.'],
+    prompts: ['What can you let go of this week?', 'Where can you give yourself more rest today?', 'What does your body need from you right now?', 'What would it look like to do less, but better, today?'],
+  },
+  follicular: {
+    name: 'Follicular', theme: 'On beginnings',
+    hormones: 'Estrogen climbs steadily as an egg matures. Progesterone stays low.',
+    good: {
+      body: ['This is the stretch furthest from PMS.', 'Appetite is usually lower than later in the cycle.'],
+      mind: ['Many people feel more cheerful and energetic as estrogen climbs.', 'Anxiety and tiredness are often lower than in the days before your period.'],
+    },
+    helps: ['A good time to try something new, if you feel like it.'],
+    hard: [],
+    prompts: ['What would you start if you knew it would go well?', 'What are you curious about this week?', 'What small step would move something forward today?', 'What do you want more of this cycle?'],
+  },
+  ovulatory: {
+    name: 'Ovulation', theme: 'On connection',
+    hormones: 'Estrogen is at its highest point. A surge of LH releases the egg.',
+    good: {
+      body: ['Desire often peaks in these fertile days.', 'Clear, stretchy discharge is a healthy sign of ovulation.'],
+      mind: ['You are still far from the premenstrual days.', 'Some people feel more outgoing. Your log will show if you do.'],
+    },
+    helps: [],
+    hard: ['Some feel a short, one-sided twinge near ovulation.'],
+    prompts: ['Who would you like to feel closer to?', 'When did you feel most like yourself lately?', 'What conversation have you been putting off?', 'Who made your week better, and do they know?'],
+  },
+  luteal: {
+    name: 'Luteal', theme: 'On steadiness',
+    hormones: 'Progesterone rises and peaks about a week after ovulation. Estrogen has a second, smaller rise.',
+    good: {
+      body: ['Progesterone makes many people sleepier in the evening. Early nights come easier.', 'Feeling hungrier is normal. Your body uses a little more energy now.'],
+      mind: ['For many people, progesterone has a calming effect.', 'If you feel calm now, that may be progesterone at work.'],
+    },
+    helps: ['Regular meals keep appetite and mood steadier.', 'Keep a steady bedtime as sleep may get lighter later on.'],
+    hard: ['Sleep may get lighter toward the end of this phase.', 'Some people feel restless instead of calm. Both are normal.'],
+    prompts: ['What is one thing you can finish this week?', 'What keeps you steady when life gets busy?', 'What are you proud of from this cycle so far?', 'What routine is quietly helping you?'],
+  },
+  premenstrual: {
+    name: 'Late luteal', theme: 'On gentleness',
+    hormones: 'Estrogen and progesterone both fall. This drop starts your next period, and with it, relief.',
+    good: {
+      body: ['Relief is close. Symptoms usually fade within about 4 days of bleeding.', 'Breakouts now tend to calm down after your period.'],
+      mind: ['What you feel now is hormonal and temporary. It is not the whole picture of you.', 'Your log shows how quickly you bounce back each cycle.'],
+    },
+    helps: ['Movement, sleep and regular meals can ease PMS.', 'If PMS seriously disrupts your life, talk to a doctor. Good treatments exist.'],
+    hard: ['Bloating, sore breasts and headaches are common.', 'Some notice irritability, anxiety or low mood.'],
+    prompts: ['What would you say to a friend who feels like you do today?', 'What is in your control today, and what is not?', 'What can you make easier for yourself this week?', 'What do you need to hear right now?'],
+  },
+};
+// Feelings counted as positive when looking for good patterns in her log.
+const POSITIVE = ['Calm', 'Content', 'Happy', 'Energetic', 'Confident', 'Social', 'Focused', 'High libido'];
+const QUOTES = [
+  ['Observe always that everything is the result of change.', 'Marcus Aurelius'],
+  ['Loss is nothing else but change, and change is Nature’s delight.', 'Marcus Aurelius'],
+  ['We suffer more often in imagination than in reality.', 'Seneca'],
+  ['Begin at once to live.', 'Seneca'],
+  ['Difficulties strengthen the mind, as labour does the body.', 'Seneca'],
+  ['The happiness of your life depends upon the quality of your thoughts.', 'Marcus Aurelius'],
+  ['First say to yourself what you would be, and then do what you have to do.', 'Epictetus'],
+  ['No one is free who is not master of themselves.', 'Epictetus'],
+  ['Wealth consists not in having great possessions, but in having few wants.', 'Epictetus'],
+  ['You have power over your mind, not outside events. Realise this, and you will find strength.', 'Marcus Aurelius'],
+  ['It is not that we have a short time to live, but that we waste a lot of it.', 'Seneca'],
+  ['Very little is needed to make a happy life.', 'Marcus Aurelius'],
+];
+const MOODS = ['Awful', 'Low', 'Okay', 'Good', 'Great'];
+const ENERGY = ['Running on empty', 'A bit low', 'Steady', 'Good energy', 'Full of energy'];
+const FEELINGS = ['Calm', 'Content', 'Happy', 'Energetic', 'Confident', 'Social', 'Focused', 'Sensitive', 'Anxious', 'Irritable', 'Sad', 'Low', 'Overwhelmed', 'Tired'];
+const SYMPTOMS = ['Cramps', 'Headache', 'Bloating', 'Sore breasts', 'Back pain', 'Acne', 'Cravings', 'Poor sleep', 'Nausea', 'High libido', 'Egg-white discharge'];
+const FLOWS = ['none', 'spotting', 'light', 'medium', 'heavy'];
+
+/* ---------- icons ---------- */
+const svg = p => `<svg class="ic" viewBox="0 0 24 24">${p}</svg>`;
+const I = {
+  sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>'),
+  moon: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
+  flame: svg('<path d="M12 21.5c3.9 0 6.8-2.6 6.8-6.5 0-3.5-2.5-6-4.4-8.3-.5 1.9-1.5 3-2.8 3.5.3-3.1-1.1-5.8-3.5-7.7.2 3.3-1.7 5.3-3.2 7.4-1.2 1.6-1.7 3.4-1.7 5.1 0 3.9 2.9 6.5 6.8 6.5z"/>'),
+  gear: svg('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'),
+  today: svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="3.5" r="2" fill="currentColor"/>'),
+  cal: svg('<rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
+  journey: svg('<path d="M4 4v16h16M8 15l3.5-4 3 2.5L19.5 8"/>'),
+  learn: svg('<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5zM4 19.5A1.5 1.5 0 0 0 5.5 21H20"/>'),
+  x: svg('<path d="M6 6l12 12M18 6 6 18"/>'),
+  left: svg('<path d="M15 5l-7 7 7 7"/>'),
+  right: svg('<path d="M9 5l7 7-7 7"/>'),
+  back: svg('<path d="M19 12H5M11 6l-6 6 6 6"/>'),
+  rise: svg('<path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 7v3M5.6 10.6l1.8 1.8M18.4 10.6l-1.8 1.8"/>'),
+};
+function face(m, cls = 'face') {
+  const c = [-7, -3.5, 0, 3.5, 7][m - 1];
+  return `<svg class="${cls}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="14" cy="16" r="1.7" fill="currentColor"/><circle cx="26" cy="16" r="1.7" fill="currentColor"/>
+    <path d="M13 ${26 - c / 2} Q20 ${26 + c} 27 ${26 - c / 2}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+}
+
+/* ---------- cycle model ---------- */
+// Luteal phase is roughly fixed (~14 days), so ovulation ≈ cycle length − 14.
+function phaseOf(day, L, P) {
+  const ov = L - 14;
+  if (day <= P) return 'menstrual';
+  if (day < ov - 1) return 'follicular';
+  if (day <= ov + 1) return 'ovulatory';
+  if (day <= L - 7) return 'luteal';
+  return 'premenstrual';
+}
+
+let memo = null;
+function M() {
+  const t = today();
+  if (memo && memo.ver === ver && memo.t === t) return memo;
+  const ps = [...db.periods].sort((a, b) => (a.start < b.start ? -1 : 1));
+  const starts = ps.map(p => p.start);
+  const gaps = [];
+  for (let i = 1; i < starts.length; i++) {
+    const g = diff(starts[i - 1], starts[i]);
+    if (g >= 15 && g <= 60) gaps.push(g);
+  }
+  const recent = gaps.slice(-6);
+  const L = recent.length ? Math.round(avg(recent)) : db.settings.cycleLength;
+  const lens = ps.filter(p => p.end).map(p => diff(p.start, p.end) + 1).filter(n => n > 0 && n < 15).slice(-6);
+  const P = lens.length ? Math.round(avg(lens)) : db.settings.periodLength;
+  const last = starts[starts.length - 1] || null;
+  const ongoing = !!last && !ps[ps.length - 1].end && diff(last, t) < P + 5;
+  const ranges = ps.map((p, i) => ({
+    start: p.start,
+    end: p.end || (i === ps.length - 1 && ongoing ? t : addDays(p.start, P - 1)),
+  }));
+  let day = null, late = 0, nextStart = null;
+  if (last) {
+    day = diff(last, t) + 1;
+    late = Math.max(0, day - L);
+    nextStart = late ? addDays(t, 1) : addDays(last, L);
+  }
+  memo = { ver, t, ps, starts, gaps, L, P, last, ongoing, ranges, day, late, nextStart };
+  return memo;
+}
+
+function dayInfo(s) {
+  const m = M();
+  if (!m.last) return null;
+  const loggedPeriod = m.ranges.some(r => s >= r.start && s <= r.end);
+  let i = m.starts.length - 1;
+  while (i >= 0 && m.starts[i] > s) i--;
+  if (i < 0) return { loggedPeriod };
+  let cs, len, current = false;
+  if (i < m.starts.length - 1) { cs = m.starts[i]; len = diff(cs, m.starts[i + 1]); }
+  else if (s < m.nextStart) { cs = m.last; len = m.L; current = true; }
+  else { cs = addDays(m.nextStart, Math.floor(diff(m.nextStart, s) / m.L) * m.L); len = m.L; current = true; }
+  const day = diff(cs, s) + 1;
+  const ov = len - 14;
+  return {
+    day, len, cs, loggedPeriod,
+    phase: phaseOf(day, len, m.P),
+    predictedPeriod: !loggedPeriod && s > m.t && day <= m.P,
+    fertile: current && day >= ov - 5 && day <= ov + 1,
+    ovulation: current && day === ov,
+  };
+}
+
+function streak() {
+  let d = db.logs[today()] ? today() : addDays(today(), -1), n = 0;
+  while (db.logs[d]) { n++; d = addDays(d, -1); }
+  return n;
+}
+
+// Same cycle day in the previous cycle (±1 day), for the "one cycle ago" echo.
+function echoFor(s) {
+  const m = M(), info = dayInfo(s);
+  if (!info || !info.day) return null;
+  const idx = m.starts.indexOf(info.cs);
+  if (idx < 1) return null;
+  const base = addDays(m.starts[idx - 1], info.day - 1);
+  for (const off of [0, -1, 1]) {
+    const d = addDays(base, off);
+    if (d < info.cs && db.logs[d]) return { date: d, log: db.logs[d], day: info.day };
+  }
+  return null;
+}
+
+/* ---------- looking ahead ---------- */
+// Average mood per cycle day, across all logged cycles.
+function moodByDay() {
+  const m = M(), days = {};
+  for (const [d, log] of Object.entries(db.logs)) {
+    const f = dayInfo(d);
+    if (!f?.day || d > m.t || !log.mood) continue;
+    (days[f.day] ||= []).push(log.mood);
+  }
+  return days;
+}
+const enoughData = days => Object.values(days).flat().length >= 20;
+
+// Her 5-day window with the highest average mood, if it clearly stands out.
+function bestStretch() {
+  const m = M(), days = moodByDay();
+  if (!enoughData(days)) return null;
+  const all = avg(Object.values(days).flat());
+  let best = null;
+  for (let a = 1; a + 4 <= m.L; a++) {
+    const v = [0, 1, 2, 3, 4].flatMap(i => days[a + i] || []);
+    if (v.length >= 5 && (!best || avg(v) > best.mean)) best = { from: a, to: a + 4, mean: avg(v) };
+  }
+  return best && best.mean >= all + 0.2 ? best : null;
+}
+
+// First cycle day on which her mood is usually back to her normal level.
+function reliefDay() {
+  const days = moodByDay();
+  if (!enoughData(days)) return null;
+  const normal = avg(Object.values(days).flat());
+  for (let d = 1; d <= 8; d++) if ((days[d] || []).length >= 2 && avg(days[d]) >= normal - 0.15) return d;
+  return null;
+}
+
+// Positive feelings she logs in at least 30% of check-ins in this phase.
+function phasePositives(phase) {
+  const m = M(), c = {};
+  let n = 0;
+  for (const [d, log] of Object.entries(db.logs)) {
+    if (d > m.t || dayInfo(d)?.phase !== phase) continue;
+    n++;
+    [...(log.feelings || []), ...(log.symptoms || [])].filter(x => POSITIVE.includes(x)).forEach(x => (c[x] = (c[x] || 0) + 1));
+  }
+  if (n < 5) return [];
+  return Object.entries(c).filter(([, k]) => k / n >= 0.3).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([x, k]) => [x, Math.round((k / n) * 100)]);
+}
+
+// Where her hormones are now, and the next good thing with a date.
+function lookingAhead() {
+  const m = M(), t = m.t, day = m.day, ov = m.L - 14, phase = dayInfo(t).phase;
+  const on = n => fmt(addDays(t, n), { weekday: 'short', day: 'numeric', month: 'short' });
+  const when = n => (n <= 0 ? 'around now' : n === 1 ? 'tomorrow' : `in ${n} days · ${on(n)}`);
+  if (phase === 'menstrual' && day <= 2) return {
+    title: 'The hardest days pass quickly',
+    body: 'Cramps usually peak on days 1 and 2. Estrogen is low now, but it starts to climb again soon.',
+    next: ['Cramps usually ease', when(3 - day)],
+  };
+  if (phase === 'menstrual') return {
+    title: 'The worst is usually behind you',
+    body: 'Cramps tend to fade after day 2, and any PMS tension is lifting. Estrogen is getting ready to climb.',
+    next: ['Bleeding usually ends', when(m.P - day)],
+  };
+  if (phase === 'follicular') return {
+    title: 'Estrogen is on the rise',
+    body: 'It climbs a little every day until ovulation. Many people feel brighter and more energetic in this stretch. See if you do.',
+    next: ['Estrogen peaks', when(ov - 1 - day)],
+  };
+  if (phase === 'ovulatory') return {
+    title: 'Estrogen is at its peak',
+    body: 'Desire often peaks in these fertile days. Next, progesterone rises. Many people find it calming.',
+    next: ['Progesterone starts to rise', when(ov + 2 - day)],
+  };
+  if (phase === 'luteal') return {
+    title: 'Progesterone is at work',
+    body: 'It peaks about a week after ovulation. For many people it brings calmer, sleepier evenings.',
+    next: ['Progesterone peaks', when(ov + 7 - day)],
+  };
+  // Late luteal: PMS usually fades within ~4 days of bleeding.
+  const toPeriod = m.late ? 1 : diff(t, m.nextStart);
+  return {
+    title: 'Lighter days are close',
+    body: 'Your hormones are falling, and that can feel rough. It is temporary. Once your period starts, PMS usually fades within about 4 days.',
+    next: ['Lighter days expected', `around ${on(toPeriod + 4)}`],
+  };
+}
+
+// One personal, positive line from her own log, or null if there is not enough data.
+function fromYourLog(phase, day) {
+  const m = M(), best = bestStretch(), relief = reliefDay();
+  if (best && day >= best.from && day <= best.to) return `You are in your usual best stretch, days ${best.from}\u2060–\u2060${best.to}.`;
+  if (relief === 1 && phase === 'premenstrual') return 'Your mood usually lifts as soon as your period starts.';
+  if (relief && phase === 'premenstrual') return `Your mood is usually back to normal by day ${relief} of your next cycle.`;
+  if (relief && phase === 'menstrual' && relief > day) return `Your mood is usually back to normal by day ${relief}. That is ${relief - day === 1 ? 'tomorrow' : `in ${relief - day} days`}.`;
+  if (best) {
+    const n = (best.from - day + m.L) % m.L;
+    if (n > 0 && n <= 12) return `Your best days usually fall on days ${best.from}\u2060–\u2060${best.to}. They start in ${n} day${n > 1 ? 's' : ''}.`;
+  }
+  const pos = phasePositives(phase);
+  if (pos.length) return `In this phase you often log ${pos.map(([x, p]) => `${x.toLowerCase()} (${p}%)`).join(' and ')}.`;
+  return null;
+}
+
+/* ---------- ui state ---------- */
+const ui = { tab: 'today', month: today().slice(0, 7), flow: null, sheet: null, ob: { step: 0, date: addDays(today(), -10), L: 28, P: 5 } };
+
+/* ---------- components ---------- */
+function arc(cx, cy, r, a0, a1) {
+  const p = a => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  const [x0, y0] = p(a0), [x1, y1] = p(a1);
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+function phaseSpans(L, P) {
+  const spans = [];
+  for (let d = 1; d <= L; d++) {
+    const k = phaseOf(d, L, P), s = spans[spans.length - 1];
+    if (s && s.k === k) s.b = d; else spans.push({ k, a: d, b: d });
+  }
+  return spans;
+}
+
+function ring() {
+  const m = M(), L = m.L, cx = 150, cy = 150, r = 128, step = (2 * Math.PI) / L, top = -Math.PI / 2;
+  // Half-gap per segment end: the round cap (6px) plus 3px of visible space, as an angle.
+  const gap = (6 + 3) / r;
+  const bc = db.settings.hormonalBC;
+  const segs = phaseSpans(L, m.P).map(s =>
+    `<path d="${arc(cx, cy, r, top + (s.a - 1) * step + gap, top + s.b * step - gap)}" stroke="var(--${bc ? 'line' : s.k})" stroke-width="12" fill="none" stroke-linecap="round"/>`).join('');
+  const ov = L - 14;
+  const fert = bc ? '' : `<path d="${arc(cx, cy, r - 20, top + (ov - 6) * step, top + (ov + 1) * step)}" stroke="var(--ovulatory)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".55"/>`;
+  const d = Math.min(m.day, L), a = top + (d - 0.5) * step;
+  const mx = cx + r * Math.cos(a), my = cy + r * Math.sin(a);
+  const info = dayInfo(m.t), ph = PHASES[info.phase];
+  let sub;
+  if (m.ongoing) sub = `Period · day ${m.day}`;
+  else if (m.late) sub = `Period is ${m.late} day${m.late > 1 ? 's' : ''} late`;
+  else { const n = diff(m.t, m.nextStart); sub = n === 0 ? 'Period may start today' : `Period in ~${n} day${n > 1 ? 's' : ''}`; }
+  return `<svg class="ring" viewBox="0 0 300 300" role="img" aria-label="Cycle day ${m.day} of about ${L}. ${ph.name} phase. ${sub}.">
+    ${segs}${fert}
+    <circle cx="${mx}" cy="${my}" r="11" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
+    <text x="150" y="98" text-anchor="middle" class="lab">CYCLE DAY</text>
+    <text x="150" y="172" text-anchor="middle" class="num">${m.day}</text>
+    <text x="150" y="204" text-anchor="middle" class="ph">${bc ? 'Since last bleed' : ph.name + ' phase'}</text>
+    <text x="150" y="228" text-anchor="middle" class="sub">${sub}</text>
+  </svg>`;
+}
+
+// Schematic hormone curves (shape only, not measured levels).
+const gauss = (x, mu, s) => Math.exp(-((x - mu) ** 2) / (2 * s * s));
+const HORMONES = [
+  { k: 'Estrogen', f: (d, ov) => 0.12 + 0.78 * gauss(d, ov - 1, d < ov - 1 ? 4.5 : 1.6) + 0.36 * gauss(d, ov + 7, 3.2), style: 'stroke:var(--ink)' },
+  { k: 'Progesterone', f: (d, ov) => 0.05 + 0.86 * gauss(d, ov + 7, 3), style: 'stroke:var(--ink2);stroke-dasharray:6 4' },
+  { k: 'LH', f: (d, ov) => 0.05 + 0.88 * gauss(d, ov - 0.5, 0.9), style: 'stroke:var(--muted);stroke-dasharray:1.5 4' },
+];
+function hormoneChart(L, day) {
+  const W = 320, H = 150, px = 4, top = 22, bot = 118, ov = L - 14, P = M().P;
+  const x = d => px + ((d - 1) / (L - 1)) * (W - 2 * px);
+  const y = v => bot - v * (bot - top);
+  const lines = HORMONES.map(h => {
+    let p = '';
+    for (let d = 1; d <= L; d += 0.25) p += `${p ? 'L' : 'M'}${x(d).toFixed(1)} ${y(h.f(d, ov)).toFixed(1)}`;
+    return `<path d="${p}" fill="none" stroke-width="2" stroke-linecap="round" style="${h.style}"/>`;
+  }).join('');
+  const band = phaseSpans(L, P).map(s => `<rect x="${x(s.a) + 1}" y="128" width="${Math.max(2, x(s.b + 1 > L ? L : s.b + 1) - x(s.a) - 2)}" height="5" rx="2.5" fill="var(--${s.k})"/>`).join('');
+  const dd = Math.min(day, L);
+  return `<svg class="hchart" viewBox="0 0 ${W} ${H}" data-l="${L}" role="img" aria-label="Schematic hormone curves across a ${L}-day cycle, with today marked at day ${day}.">
+    <line x1="${px}" x2="${W - px}" y1="${bot}" y2="${bot}" stroke="var(--line)"/>
+    ${lines}${band}
+    <line class="cross" x1="${x(dd)}" x2="${x(dd)}" y1="${top - 6}" y2="${bot}" stroke="var(--ink)" stroke-width="1"/>
+    <circle class="cross-dot" cx="${x(dd)}" cy="${y(HORMONES[0].f(dd, ov))}" r="4.5" fill="var(--ink)" stroke="var(--card)" stroke-width="2"/>
+    <text class="tip" x="${Math.min(Math.max(x(dd), 40), W - 40)}" y="10" text-anchor="middle">Today · day ${day}</text>
+    <text x="${px}" y="148">Day 1</text><text x="${x(ov)}" y="148" text-anchor="middle">Ovulation ~${ov}</text><text x="${W - px}" y="148" text-anchor="end">${L}</text>
+  </svg>
+  <div class="legend">${HORMONES.map(h => `<span><svg width="18" height="4"><line x1="0" x2="18" y1="2" y2="2" stroke-width="2" style="${h.style}"/></svg>${h.k}</span>`).join('')}</div>`;
+}
+function bindCharts() {
+  document.querySelectorAll('.hchart').forEach(el => {
+    const L = +el.dataset.l, W = 320, px = 4, ov = L - 14, P = M().P, t = M().day;
+    const cross = el.querySelector('.cross'), dot = el.querySelector('.cross-dot'), tip = el.querySelector('.tip');
+    const set = d => {
+      const x = px + ((d - 1) / (L - 1)) * (W - 2 * px);
+      cross.setAttribute('x1', x); cross.setAttribute('x2', x);
+      dot.setAttribute('cx', x); dot.setAttribute('cy', 118 - HORMONES[0].f(d, ov) * 96);
+      tip.setAttribute('x', Math.min(Math.max(x, 60), W - 60));
+      tip.textContent = `${d === Math.min(t, L) ? 'Today · ' : ''}Day ${d} · ${PHASES[phaseOf(d, L, P)].name}`;
+    };
+    const move = e => {
+      const r = el.getBoundingClientRect();
+      set(Math.min(L, Math.max(1, Math.round(((e.clientX - r.left) / r.width * W - px) / (W - 2 * px) * (L - 1) + 1))));
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerdown', move);
+    el.addEventListener('pointerleave', () => set(Math.min(t, L)));
+  });
+}
+
+function dayClasses(s) {
+  const f = dayInfo(s);
+  if (!f) return '';
+  if (f.loggedPeriod) return 'period-fill';
+  if (f.predictedPeriod) return 'pred-ring';
+  if (db.settings.hormonalBC) return '';
+  if (f.ovulation) return 'ov-ring fertile-fill';
+  if (f.fertile) return 'fertile-fill';
+  return '';
+}
+
+function weekStrip() {
+  const t = today();
+  return `<div class="week">${[-3, -2, -1, 0, 1, 2, 3].map(o => {
+    const s = addDays(t, o);
+    return `<button class="wd ${o === 0 ? 'today' : ''}" data-a="day" data-v="${s}">
+      ${fmt(s, { weekday: 'narrow' })}<b class="${dayClasses(s)}">${parse(s).getDate()}</b><span class="mk ${db.logs[s] ? 'on' : ''}"></span></button>`;
+  }).join('')}</div>`;
+}
+
+const tagsOf = log => [...(log.feelings || []), ...(log.symptoms || []), ...(log.flow && log.flow !== 'none' ? [log.flow + ' flow'] : [])];
+
+/* ---------- views ---------- */
+function vToday() {
+  const m = M(), t = m.t, h = new Date().getHours(), log = db.logs[t];
+  if (!m.last) return `<main class="screen"><section class="card empty-state"><h2>No period logged yet</h2>
+    <p class="lede">Log the first day of your last period to start.</p>
+    <button class="btn period" style="margin-top:20px" data-a="periodStart" data-v="${t}">Period started today</button>
+    <button class="link" style="display:block;margin:10px auto 0" data-a="tab" data-v="calendar">Pick an earlier day</button></section></main>`;
+  const info = dayInfo(t);
+  const evening = h >= 15;
+  const greet = h < 12 ? 'Good morning.' : h < 18 ? 'Good afternoon.' : 'Good evening.';
+  const ph = PHASES[info.phase];
+  const st = streak();
+  const q = pick(QUOTES, t + 'q');
+  const echo = echoFor(t);
+
+  const checkin = log
+    ? `<section class="card invert checkin">
+        <div class="eyebrow">${evening ? I.moon : I.sun} ${evening ? 'Evening reflection' : 'Morning check-in'}</div>
+        <div class="done">${face(log.mood)}<div><div style="font-weight:600">You checked in · ${MOODS[log.mood - 1]}</div>
+        <div class="tags">${tagsOf(log).slice(0, 5).map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div></div></div>
+        <button class="btn light" style="margin-top:18px" data-a="checkin" data-v="${t}">Edit</button>
+      </section>`
+    : `<section class="card invert checkin">
+        <div class="eyebrow">${evening ? I.moon : I.sun} ${evening ? 'Evening reflection' : 'Morning check-in'}</div>
+        <h2>${evening ? 'How are you feeling this evening?' : 'How are you feeling this morning?'}</h2>
+        <button class="btn light" data-a="checkin" data-v="${t}">Begin check-in</button>
+      </section>`;
+
+  const phaseCard = db.settings.hormonalBC
+    ? `<section class="card"><h3>On hormonal birth control</h3><p class="lede">The pill, patch, ring and implant usually pause your natural hormone cycle. So the phase insights don’t apply. A bleed on a pill break is a withdrawal bleed, not a period. You can still track bleeding, mood and symptoms.</p></section>`
+    : `<section class="card phase" style="--tint:var(--${info.phase})">
+        <div class="eyebrow"><span class="dot" style="background:var(--${info.phase})"></span>${ph.name} phase · day ${m.day}</div>
+        <h2>${ph.theme}</h2>
+        <p class="lede">${ph.hormones}</p>
+        ${hormoneChart(m.L, m.day)}
+        <h3 class="sec">On your side</h3>
+        <div class="cols good"><div><h4>Body</h4><ul>${ph.good.body.map(x => `<li>${x}</li>`).join('')}</ul></div>
+        <div><h4>Mind</h4><ul>${ph.good.mind.map(x => `<li>${x}</li>`).join('')}</ul></div></div>
+        ${ph.helps.length ? `<h3 class="sec">What helps</h3><ul class="helps">${ph.helps.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
+        ${ph.hard.length ? `<details class="mild"><summary>What may also come up</summary><ul>${ph.hard.map(x => `<li>${x}</li>`).join('')}</ul></details>` : ''}
+        <p class="fine">Typical patterns, not rules. Your Journey tab shows what is true for you. Drag the chart to explore.</p>
+      </section>`;
+
+  const ahead = lookingAhead(), mine = fromYourLog(info.phase, m.day);
+  const liftCard = db.settings.hormonalBC ? '' : `<section class="card lift" style="--tint:var(--${info.phase})">
+      <div class="eyebrow">${I.rise} Looking ahead</div>
+      <h2>${ahead.title}</h2>
+      <p class="lede">${ahead.body}</p>
+      <div class="next"><span>${ahead.next[0]}</span><b>${ahead.next[1]}</b></div>
+      ${mine ? `<p class="mine"><span class="eyebrow">From your log</span>${mine}</p>` : ''}
+    </section>`;
+
+  const echoCard = echo ? `<section class="card echo">
+      <div class="eyebrow">One cycle ago · day ${echo.day}</div>
+      <div class="echo-row">${face(echo.log.mood)}<div><div style="font-weight:600">You felt ${MOODS[echo.log.mood - 1].toLowerCase()}</div>
+      <div class="tags">${tagsOf(echo.log).slice(0, 4).map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div></div></div>
+      ${echo.log.note ? `<p class="note">“${esc(echo.log.note.slice(0, 160))}${echo.log.note.length > 160 ? '…' : ''}”</p>` : ''}
+    </section>` : '';
+
+  return `<main class="screen">
+    <header class="top">
+      <div><div class="eyebrow">${fmtLong(t)}</div><h1 class="hello">${greet}</h1></div>
+      <div class="top-actions">
+        <button class="streak ${st ? 'on' : ''}" data-a="tab" data-v="journey" aria-label="${st} day streak">${I.flame}<span>${st}</span></button>
+        <button class="icon-btn" data-a="settings" aria-label="Settings">${I.gear}</button>
+      </div>
+    </header>
+    ${db.settings.sample ? `<div class="banner"><span>You are looking at sample data.</span><button class="link" data-a="clearSample">Start fresh</button></div>` : ''}
+    ${weekStrip()}
+    <section class="hero">${ring()}</section>
+    <div class="center-actions">
+      ${m.ongoing ? `<button class="btn ghost" data-a="periodEnd" data-v="${t}">Period ended today</button>`
+                  : `<button class="btn ${m.late || diff(t, m.nextStart) <= 3 ? 'period' : 'ghost'}" data-a="periodStart" data-v="${t}">Period started today</button>`}
+    </div>
+    ${liftCard}
+    ${checkin}
+    ${phaseCard}
+    ${echoCard}
+    <section class="card quote"><div class="eyebrow" style="margin-bottom:14px">Daily stoic</div>
+      <blockquote>“${q[0]}”</blockquote><cite>${q[1]}</cite></section>
+  </main>`;
+}
+
+function vCalendar() {
+  const [y, mo] = ui.month.split('-').map(Number);
+  const first = new Date(y, mo - 1, 1), lead = (first.getDay() + 6) % 7;
+  const days = new Date(y, mo, 0).getDate(), t = today();
+  let cells = '';
+  for (let i = 0; i < lead; i++) cells += `<div class="cd out"><b></b></div>`;
+  for (let d = 1; d <= days; d++) {
+    const s = `${y}-${pad2(mo)}-${pad2(d)}`;
+    cells += `<button class="cd ${s === t ? 'today' : ''}" data-a="day" data-v="${s}"><b class="${dayClasses(s)}">${d}</b><span class="mk ${db.logs[s] ? 'on' : ''}"></span></button>`;
+  }
+  const title = first.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  return `<main class="screen">
+    <header class="top"><div><div class="eyebrow">Calendar</div><h1 class="hello">Your rhythm</h1></div>
+      <div class="top-actions"><button class="icon-btn" data-a="settings" aria-label="Settings">${I.gear}</button></div></header>
+    <section class="card">
+      <div class="cal-head"><button class="icon-btn" style="background:var(--chip)" data-a="month" data-v="-1" aria-label="Previous month">${I.left}</button>
+        <h2>${title}</h2>
+        <button class="icon-btn" style="background:var(--chip)" data-a="month" data-v="1" aria-label="Next month">${I.right}</button></div>
+      <div class="cal">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(x => `<div class="dow">${x}</div>`).join('')}${cells}</div>
+      <div class="keys">
+        <span><b style="background:var(--menstrual)"></b>Period</span>
+        <span><b style="outline:1.5px dashed var(--menstrual);outline-offset:-1.5px"></b>Expected</span>
+        ${db.settings.hormonalBC ? '' : `<span><b class="fertile-fill"></b>Fertile window</span><span><b style="box-shadow:inset 0 0 0 2px var(--ovulatory)"></b>Ovulation</span>`}
+        <span><b style="width:5px;height:5px;background:var(--ink)"></b>Check-in</span>
+      </div>
+    </section>
+    <p class="fine" style="padding:0 6px">Tap a day to log or fix a period. Predictions are estimates from your history. Never use them as birth control.</p>
+  </main>`;
+}
+
+function journeyData() {
+  const m = M(), byPhase = {};
+  PHASE_KEYS.forEach(k => (byPhase[k] = { moods: [], n: 0, counts: {} }));
+  for (const [d, log] of Object.entries(db.logs)) {
+    const f = dayInfo(d);
+    if (!f || !f.phase || d > m.t) continue;
+    const b = byPhase[f.phase];
+    b.n++;
+    if (log.mood) b.moods.push(log.mood);
+    [...(log.feelings || []), ...(log.symptoms || [])].forEach(x => (b.counts[x] = (b.counts[x] || 0) + 1));
+  }
+  const cycles = m.starts.map((s, i) => ({ start: s, len: i < m.starts.length - 1 ? diff(s, m.starts[i + 1]) : null, plen: diff(m.ranges[i].start, m.ranges[i].end) + 1 }));
+  return { m, byPhase, cycles };
+}
+
+function healthNotes(m, cycles) {
+  const notes = [], done = cycles.filter(c => c.len);
+  const short = done.filter(c => c.len < 21).length, long = done.filter(c => c.len > 35).length;
+  if (short) notes.push(`${short} cycle${short > 1 ? 's were' : ' was'} shorter than 21 days.`);
+  if (long) notes.push(`${long} cycle${long > 1 ? 's were' : ' was'} longer than 35 days.`);
+  if (cycles.some(c => c.plen > 7)) notes.push('A period lasted longer than 7 days.');
+  const recent = done.slice(-6).map(c => c.len);
+  if (recent.length >= 3 && Math.max(...recent) - Math.min(...recent) > 9) notes.push('Your recent cycle lengths vary by more than 9 days.');
+  if (m.late >= 7) notes.push(`Your period is ${m.late} days late. If pregnancy is possible, consider a test.`);
+  return notes;
+}
+
+// Average mood per cycle day (3-day smoothing), with her best stretch shaded.
+function goodStretchCard(m) {
+  const days = moodByDay(), best = bestStretch(), relief = reliefDay();
+  if (!best && !relief) return '';
+  const W = 320, H = 132, px = 4, top = 14, bot = 100, L = m.L;
+  const x = d => px + ((d - 1) / (L - 1)) * (W - 2 * px);
+  const y = v => bot - ((v - 1) / 4) * (bot - top);
+  const pts = [];
+  for (let d = 1; d <= L; d++) {
+    const v = [-1, 0, 1].flatMap(o => days[d + o] || []);
+    if (v.length) pts.push([d, avg(v)]);
+  }
+  const line = pts.map(([d, v], i) => `${i ? 'L' : 'M'}${x(d).toFixed(1)} ${y(v).toFixed(1)}`).join('');
+  const shade = best ? `<rect x="${x(best.from)}" y="${top - 8}" width="${x(best.to) - x(best.from)}" height="${bot - top + 8}" rx="6" fill="var(--ink)" opacity=".07"/>
+    <text x="${(x(best.from) + x(best.to)) / 2}" y="${top - 12}" text-anchor="middle" style="fill:var(--ink);font-weight:600">Best days</text>` : '';
+  const band = phaseSpans(L, m.P).map(s => `<rect x="${x(s.a) + 1}" y="110" width="${Math.max(2, x(Math.min(s.b + 1, L)) - x(s.a) - 2)}" height="5" rx="2.5" fill="var(--${s.k})"/>`).join('');
+  const hits = pts.map(([d, v]) => `<rect x="${x(d) - W / L / 2}" y="${top}" width="${W / L}" height="${bot - top}" fill="transparent"><title>Day ${d} · average mood ${v.toFixed(1)}</title></rect>`).join('');
+  const text = [best && `Your mood is usually highest on days ${best.from}\u2060–\u2060${best.to}.`, relief && (relief === 1 ? 'It usually lifts as soon as your period starts.' : `After your period starts, it is usually back to normal by day ${relief}.`)].filter(Boolean).join(' ');
+  return `<section class="card">
+    <h2>Your good stretch</h2>
+    <p class="lede">${text}</p>
+    <svg class="mchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Average mood per cycle day. ${text}">
+      <line x1="${px}" x2="${W - px}" y1="${y(5)}" y2="${y(5)}" stroke="var(--line)"/><line x1="${px}" x2="${W - px}" y1="${y(3)}" y2="${y(3)}" stroke="var(--line)" stroke-dasharray="2 4"/><line x1="${px}" x2="${W - px}" y1="${y(1)}" y2="${y(1)}" stroke="var(--line)"/>
+      ${shade}
+      <path d="${line}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      ${band}${hits}
+      <text x="${px}" y="130">Day 1</text><text x="${W - px}" y="130" text-anchor="end">${L}</text>
+      <text x="${W - px}" y="${y(5) - 4}" text-anchor="end">Great</text><text x="${W - px}" y="${y(1) - 4}" text-anchor="end">Awful</text>
+    </svg>
+    <p class="fine">Your average mood on each cycle day, across all your logged cycles.</p>
+  </section>`;
+}
+
+function vJourney() {
+  const { m, byPhase, cycles } = journeyData();
+  const nLogs = Object.keys(db.logs).length, done = cycles.filter(c => c.len);
+  const lens = done.slice(-6).map(c => c.len);
+  const header = `<header class="top"><div><div class="eyebrow">Journey</div><h1 class="hello">Your patterns</h1></div>
+    <div class="top-actions"><button class="icon-btn" data-a="settings" aria-label="Settings">${I.gear}</button></div></header>`;
+
+  const stats = `<div class="stats">
+    <div class="stat"><div class="eyebrow">Avg cycle</div><div class="v">${m.L}<small>days</small></div><div class="s">${lens.length ? `range ${Math.min(...lens)}–${Math.max(...lens)}` : 'from your settings'}</div></div>
+    <div class="stat"><div class="eyebrow">Avg period</div><div class="v">${m.P}<small>days</small></div><div class="s">${cycles.length} logged</div></div>
+    <div class="stat"><div class="eyebrow">Check-ins</div><div class="v">${nLogs}</div><div class="s">all time</div></div>
+    <div class="stat"><div class="eyebrow">Streak</div><div class="v">${streak()}<small>days</small></div><div class="s">keep it going</div></div>
+  </div>`;
+
+  if (nLogs < 5) {
+    return `<main class="screen">${header}${stats}
+      <section class="card empty-state"><h2>Your patterns will appear here</h2>
+      <p class="lede">Check in each day. After a few weeks you will see how your mood and body move with your cycle. After two cycles, you can compare them.</p>
+      <button class="btn" style="margin-top:20px" data-a="checkin" data-v="${m.t}">Check in now</button></section></main>`;
+  }
+
+  // Mood dot grid: one row per cycle, one column per cycle day.
+  const rows = cycles.slice(-6);
+  const cols = Math.min(40, Math.max(m.L, ...rows.map(c => c.len || m.day)));
+  const op = [0.16, 0.34, 0.55, 0.78, 1];
+  const band = Array.from({ length: cols }, (_, i) => `<div class="band" style="background:var(--${phaseOf(i + 1, m.L, m.P)})"></div>`).join('');
+  const grid = rows.map(c => {
+    const len = c.len || m.day;
+    return Array.from({ length: cols }, (_, i) => {
+      if (i >= len) return `<div></div>`;
+      const d = addDays(c.start, i), log = db.logs[d], per = dayInfo(d)?.loggedPeriod;
+      const title = `${fmtShort(d)} · day ${i + 1}${log ? ' · ' + MOODS[log.mood - 1] : ''}`;
+      return log
+        ? `<button class="c ${per ? 'p' : ''}" style="background:color-mix(in srgb,var(--ink) ${op[log.mood - 1] * 100}%,transparent)" title="${title}" aria-label="${title}" data-a="day" data-v="${d}"></button>`
+        : `<button class="c empty ${per ? 'p' : ''}" title="${title}" aria-label="${title}" data-a="day" data-v="${d}"></button>`;
+    }).join('');
+  }).join('');
+  const moodGrid = `<section class="card">
+    <h2>Mood across your cycle</h2>
+    <p class="lede">Each row is one cycle. Each dot is one day. Darker means a better mood.</p>
+    <div class="grid-wrap">
+      <div class="grid-labels">${rows.map(c => `<div>${fmtShort(c.start)}</div>`).join('')}</div>
+      <div class="mgrid" style="grid-template-columns:repeat(${cols},1fr)">${band}${grid}</div>
+    </div>
+    <div class="axis" style="--lw:44px"><span>Day 1</span><span>${Math.round(cols / 2)}</span><span>${cols}</span></div>
+    <div class="legend" style="margin-top:12px"><span>Low</span>${op.map(o => `<span class="dot" style="background:color-mix(in srgb,var(--ink) ${o * 100}%,transparent)"></span>`).join('')}<span>High</span>
+      <span style="margin-left:8px"><span class="dot" style="box-shadow:0 0 0 1.5px var(--menstrual)"></span>Period day</span></div>
+  </section>`;
+
+  const withMood = PHASE_KEYS.filter(k => byPhase[k].moods.length);
+  const bars = `<section class="card">
+    <h2>Mood by phase</h2><p class="lede">Your average mood in each phase, on a scale of 1 to 5.</p>
+    <div class="bars">${withMood.map(k => {
+      const a = avg(byPhase[k].moods);
+      return `<div class="bar-row"><span>${PHASES[k].name}</span><div class="track" title="${a.toFixed(1)} from ${byPhase[k].moods.length} check-ins"><div class="fill" style="width:${(a / 5) * 100}%;background:var(--${k})"></div></div><span class="val">${a.toFixed(1)}</span></div>`;
+    }).join('')}</div>
+  </section>`;
+
+  const brings = `<section class="card">
+    <h2>What each phase brings you</h2><p class="lede">How often you logged each feeling or symptom in that phase.</p>
+    <div class="brings">${PHASE_KEYS.map(k => {
+      const b = byPhase[k];
+      const top = Object.entries(b.counts).filter(([, n]) => n >= 2 && n / b.n >= 0.25).sort((a, c) => POSITIVE.includes(c[0]) - POSITIVE.includes(a[0]) || c[1] - a[1]).slice(0, 4);
+      if (!top.length) return '';
+      return `<div><div class="h"><span class="dot" style="background:var(--${k})"></span>${PHASES[k].name}</div>
+        <div class="tags">${top.map(([x, n]) => `<span class="tag">${esc(x)} · ${Math.round((n / b.n) * 100)}%</span>`).join('')}</div></div>`;
+    }).join('') || '<p class="lede">Log a few more days to see this.</p>'}</div>
+  </section>`;
+
+  const notes = healthNotes(m, cycles);
+  const noteCard = notes.length ? `<section class="card note-card"><h3>Worth mentioning to a doctor</h3>
+    <ul>${notes.map(n => `<li>${n}</li>`).join('')}</ul>
+    <p class="fine">This is not a diagnosis. See the Learn tab for when to get help.</p></section>` : '';
+
+  const hist = `<section class="card"><h2>Cycle history</h2>
+    <table class="hist"><thead><tr><th>Started</th><th>Cycle</th><th>Period</th></tr></thead><tbody>
+    ${cycles.slice().reverse().slice(0, 12).map(c => `<tr><td>${fmt(c.start, { day: 'numeric', month: 'short', year: 'numeric' })}</td><td>${c.len ? c.len + ' days' : 'current'}</td><td>${c.plen} days</td></tr>`).join('')}
+    </tbody></table></section>`;
+
+  return `<main class="screen">${header}${stats}${goodStretchCard(m)}${noteCard}${moodGrid}${withMood.length ? bars : ''}${brings}${hist}</main>`;
+}
+
+function vLearn() {
+  const m = M(), L = m.L, ov = L - 14;
+  const days = phaseSpans(L, m.P).reduce((o, s) => ((o[s.k] = s.a === s.b ? `day ${s.a}` : `days ${s.a}–${s.b}`), o), {});
+  const phases = PHASE_KEYS.map(k => {
+    const p = PHASES[k];
+    return `<h4><span class="dot" style="background:var(--${k})"></span>${p.name} · ${days[k] || '—'}</h4>
+      <p>${p.hormones}</p><ul>${[...p.good.body, ...p.good.mind, ...p.helps, ...p.hard].map(x => `<li>${x}</li>`).join('')}</ul>`;
+  }).join('');
+  const ev = s => `<span class="ev">${s}</span>`;
+  return `<main class="screen">
+    <header class="top"><div><div class="eyebrow">Learn</div><h1 class="hello">Know your rhythm</h1></div>
+      <div class="top-actions"><button class="icon-btn" data-a="settings" aria-label="Settings">${I.gear}</button></div></header>
+    <details open><summary>Your cycle in phases</summary><div class="body">
+      <p>Your cycle is about ${L} days. The time after ovulation stays close to 14 days for most people. The time before it changes more. So ovulation is likely around day ${ov}, give or take a few days.</p>
+      ${phases}</div></details>
+    <details><summary>How sure is the science?</summary><div class="body">
+      <p>Some cycle effects are well proven. Others are popular online but weakly supported.</p>
+      <ul>
+        <li>Cramps peak on days 1–2 ${ev('strong')}</li>
+        <li>Body temperature and resting heart rate rise after ovulation ${ev('strong')}</li>
+        <li>Cervical mucus turns clear and stretchy near ovulation ${ev('strong')}</li>
+        <li>Bloating, sore breasts and headaches before a period are common ${ev('strong')}</li>
+        <li>Appetite rises in the luteal phase ${ev('moderate')}</li>
+        <li>Skin breaks out before a period ${ev('moderate')}</li>
+        <li>Desire rises around ovulation ${ev('mixed')}</li>
+        <li>Mood is brighter and more social mid-cycle ${ev('weak')}</li>
+        <li>Verbal or thinking skills change with the cycle ${ev('not supported')}</li>
+        <li>Workouts or diets planned by phase (“cycle syncing”) ${ev('weak')}</li>
+      </ul>
+      <p>Most effects are small on average and vary a lot between people. That is why your own log matters more than any general rule.</p>
+      <p>Expectations matter too. In one study, women who were told they were premenstrual reported more physical symptoms. That is why this app starts with what is on your side.</p>
+    </div></details>
+    <details><summary>PMS or PMDD?</summary><div class="body">
+      <p><b>PMS</b> is physical or emotional symptoms in the 1–2 weeks before a period. They ease once bleeding starts. It is very common.</p>
+      <p><b>PMDD</b> is a severe form that affects about 3–8% of women. Mood symptoms such as anger, deep sadness or anxiety disrupt work and relationships. They appear in the last week before the period and are gone in the week after it.</p>
+      <p>Doctors confirm PMDD with daily ratings over two cycles. Your daily check-ins can help with that conversation.</p>
+      <p><b>If you have thoughts of harming yourself, get help now.</b> Call your local emergency number or a crisis line.</p>
+    </div></details>
+    <details><summary>When to see a doctor</summary><div class="body"><ul>
+      <li>Bleeding for more than 7 days</li>
+      <li>Cycles shorter than 21 or longer than 35 days</li>
+      <li>Soaking a pad or tampon every 1–2 hours</li>
+      <li>Clots larger than about 2.5 cm</li>
+      <li>Bleeding between periods or after sex</li>
+      <li>Pain that stops you from doing normal things</li>
+      <li>Regular cycles that become irregular</li>
+      <li>No period for 90 days or more, when not pregnant</li>
+    </ul><p><b>Get urgent help</b> for heavy bleeding with dizziness, fainting, chest pain or shortness of breath.</p></div></details>
+    <details><summary>About the predictions</summary><div class="body">
+      <p>The app predicts from the average of your last cycles. Ovulation timing from a calendar alone is weak. Even in regular cycles, it can shift by several days.</p>
+      <ul><li>Never use these predictions as birth control.</li>
+      <li>The pill, patch, ring and implant usually pause the natural cycle. Turn on “Hormonal birth control” in settings.</li>
+      <li>PCOS, breastfeeding, perimenopause and the first years after a first period can all break the usual pattern.</li></ul>
+    </div></details>
+    <details><summary>Sources</summary><div class="body"><ul>
+      <li><a href="https://my.clevelandclinic.org/health/articles/24417-luteal-phase" target="_blank" rel="noopener">Cleveland Clinic: Luteal phase</a></li>
+      <li><a href="https://www.nhs.uk/conditions/pre-menstrual-syndrome/" target="_blank" rel="noopener">NHS: Premenstrual syndrome</a></li>
+      <li><a href="https://www.nhs.uk/conditions/heavy-periods/" target="_blank" rel="noopener">NHS: Heavy periods</a></li>
+      <li><a href="https://my.clevelandclinic.org/health/articles/21957-cervical-mucus" target="_blank" rel="noopener">Cleveland Clinic: Cervical mucus</a></li>
+      <li><a href="https://www.bmj.com/node/536369" target="_blank" rel="noopener">BMJ 2000: Timing of the fertile window</a></li>
+      <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11913300/" target="_blank" rel="noopener">Meta-analysis: Cognition across the cycle</a></li>
+      <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11819481/" target="_blank" rel="noopener">Review: Energy intake across the cycle</a></li>
+      <li><a href="https://pubmed.ncbi.nlm.nih.gov/560058/" target="_blank" rel="noopener">Science 1977: Expectation and premenstrual symptoms</a></li>
+      <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8943241/" target="_blank" rel="noopener">Review: Period pain and its timing</a></li>
+      <li><a href="https://www.cochrane.org/evidence/CD004142-exercise-dysmenorrhoea" target="_blank" rel="noopener">Cochrane: Exercise for period pain</a></li>
+      <li><a href="https://jamanetwork.com/journals/jamadermatology/fullarticle/480456" target="_blank" rel="noopener">JAMA Dermatology: Premenstrual acne</a></li>
+    </ul><p>This app is for self-awareness, not medical advice.</p></div></details>
+  </main>`;
+}
+
+const TABS = [['today', 'Today', I.today], ['calendar', 'Calendar', I.cal], ['journey', 'Journey', I.journey], ['learn', 'Learn', I.learn]];
+const vTabbar = () => `<nav class="tabbar">${TABS.map(([k, n, ic]) => `<button class="tab ${ui.tab === k ? 'on' : ''}" data-a="tab" data-v="${k}">${ic}${n}</button>`).join('')}</nav>`;
+
+/* ---------- onboarding ---------- */
+function vOnboard() {
+  const o = ui.ob, s = o.step;
+  const foot = (next, label = 'Continue') => `<div class="flow-foot">${s ? `<button class="btn ghost" data-a="ob" data-v="-1" aria-label="Back">${I.back}</button>` : ''}<button class="btn block" data-a="${next}" data-v="1">${label}</button></div>`;
+  const prog = `<div class="flow-top"><div class="progress">${[1, 2, 3].map(i => `<i class="${s >= i ? 'on' : ''}"></i>`).join('')}</div></div>`;
+  if (s === 0) return `<div class="flow" style="position:static;min-height:100vh"><div class="flow-body" style="justify-content:center"><div class="step" style="justify-content:center;flex:0">
+      <div class="brand">phase.</div>
+      <h1 style="margin-top:8px">Know your rhythm.</h1>
+      <p class="sub" style="font-size:18px">A calm daily check-in that shows how your hormones shape your body and mind, cycle after cycle.</p>
+    </div></div>
+    <div class="flow-foot" style="flex-direction:column;align-items:center"><button class="btn block" data-a="ob" data-v="1">Begin</button>
+    <button class="link" data-a="sample">Explore with sample data</button></div></div>`;
+  let body;
+  if (s === 1) body = `<h1>When did your last period start?</h1><p class="sub">The first day of bleeding. A guess is fine. You can fix it later.</p>
+      <input type="date" class="date-in" id="ob-date" value="${o.date}" max="${today()}">`;
+  if (s === 2) body = `<h1>How long is your cycle, usually?</h1><p class="sub">From the first day of one period to the first day of the next. Most cycles are 21–35 days.</p>
+      <div class="stepper"><button data-a="obN" data-v="L:-1">−</button><div class="n">${o.L}</div><button data-a="obN" data-v="L:1">+</button></div><div class="stepper-unit">days</div>`;
+  if (s === 3) body = `<h1>How many days do you usually bleed?</h1><p class="sub">The app learns your real numbers as you log.</p>
+      <div class="stepper"><button data-a="obN" data-v="P:-1">−</button><div class="n">${o.P}</div><button data-a="obN" data-v="P:1">+</button></div><div class="stepper-unit">days</div>`;
+  return `<div class="flow" style="position:static;min-height:100vh">${prog}<div class="flow-body"><div class="step" key="${s}">${body}</div></div>${s === 3 ? foot('obDone', 'Start') : foot('ob')}</div>`;
+}
+
+/* ---------- check-in flow ---------- */
+const STEPS = ['mood', 'feelings', 'energy', 'body', 'reflect', 'done'];
+function openFlow(date) {
+  const log = db.logs[date];
+  const info = dayInfo(date);
+  const prompt = log?.prompt || pick(PHASES[info?.phase || 'follicular'].prompts, date);
+  ui.flow = { date, step: 0, d: { mood: 0, feelings: [], energy: 3, symptoms: [], flow: info?.loggedPeriod ? 'medium' : 'none', note: '', prompt, ...structuredClone(log || {}) } };
+}
+function vFlow() {
+  const f = ui.flow, d = f.d, step = STEPS[f.step], isToday = f.date === today();
+  const when = isToday ? '' : `<p class="sub">${fmtLong(f.date)}</p>`;
+  let body, next = `<button class="btn block" data-a="fl" data-v="next">Continue</button>`;
+  if (step === 'mood') {
+    body = `${when}<h1>How are you feeling${isToday ? ' today' : ''}?</h1>
+      <div class="faces">${MOODS.map((n, i) => `<button class="${d.mood === i + 1 ? 'on' : ''}" data-a="flMood" data-v="${i + 1}">${face(i + 1, '')}${n}</button>`).join('')}</div>`;
+    next = `<button class="btn block" data-a="fl" data-v="next" ${d.mood ? '' : 'disabled'}>Continue</button>`;
+  }
+  if (step === 'feelings') body = `<h1>Which words fit?</h1><p class="sub">Pick any that feel true.</p>
+      <div class="chips">${FEELINGS.map(x => `<button class="chip ${d.feelings.includes(x) ? 'on' : ''}" data-a="flToggle" data-v="feelings:${x}">${x}</button>`).join('')}</div>`;
+  if (step === 'energy') body = `<h1>How is your energy?</h1>
+      <div class="slider-wrap"><div class="big" id="energy-label">${ENERGY[d.energy - 1]}</div>
+      <input type="range" min="1" max="5" step="1" value="${d.energy}" id="energy" aria-label="Energy">
+      <div class="ends"><span>Empty</span><span>Full</span></div></div>`;
+  if (step === 'body') body = `<h1>What is your body telling you?</h1>
+      <div class="chips">${SYMPTOMS.map(x => `<button class="chip ${d.symptoms.includes(x) ? 'on' : ''}" data-a="flToggle" data-v="symptoms:${x}">${x}</button>`).join('')}</div>
+      <h3 style="margin-top:28px;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500">Bleeding</h3>
+      <div class="seg">${FLOWS.map(x => `<button class="${d.flow === x ? 'on' : ''} ${x === 'none' ? 'none' : ''}" data-a="flFlow" data-v="${x}">${x[0].toUpperCase() + x.slice(1)}</button>`).join('')}</div>`;
+  if (step === 'reflect') {
+    body = `<div class="eyebrow">Reflect</div><h1>${esc(d.prompt)}</h1>
+      <textarea id="note" placeholder="Start writing…">${esc(d.note || '')}</textarea>`;
+    next = `<button class="btn block" data-a="flSave">${d.note ? 'Save' : 'Skip and save'}</button>`;
+  }
+  if (step === 'done') {
+    const st = streak(), echo = echoFor(f.date);
+    body = `<div class="step done-step"><div class="flame">${I.flame}</div>
+      <h1>${st > 1 ? `${st} days in a row` : 'Saved'}</h1>
+      <p class="sub">${st > 1 ? 'Small daily notes add up to real self-knowledge.' : 'Come back tomorrow to start your streak.'}</p>
+      ${f.date === today() && !db.settings.hormonalBC ? (() => { const a = lookingAhead(); return `<p class="echo-line">Coming up: ${a.next[0].toLowerCase()} ${a.next[1].split(' · ')[0]}.</p>`; })() : ''}
+      ${echo ? `<p class="echo-line">One cycle ago, on day ${echo.day}, you felt ${MOODS[echo.log.mood - 1].toLowerCase()}${(echo.log.feelings || []).length ? ' and ' + echo.log.feelings.slice(0, 2).join(', ').toLowerCase() : ''}.</p>` : ''}
+    </div>`;
+    next = `<button class="btn block" data-a="flClose">Done</button>`;
+  }
+  const back = f.step > 0 && step !== 'done' ? `<button class="btn ghost" data-a="fl" data-v="back" aria-label="Back">${I.back}</button>` : '';
+  // Animate only when the step changes, not on every chip tap.
+  const anim = f.shown !== f.step ? 'anim' : '';
+  f.shown = f.step;
+  return `
+    <div class="flow-top"><div class="progress">${STEPS.slice(0, -1).map((_, i) => `<i class="${i <= f.step ? 'on' : ''}"></i>`).join('')}</div>
+      <button class="icon-btn" data-a="flClose" aria-label="Close">${I.x}</button></div>
+    <div class="flow-body">${step === 'done' ? body.replace('class="step ', `class="step ${anim} `) : `<div class="step ${anim}">${body}</div>`}</div>
+    <div class="flow-foot">${back}${next}</div>`;
+}
+
+/* ---------- sheets ---------- */
+function vDaySheet(s) {
+  const info = dayInfo(s), log = db.logs[s], m = M(), future = s > m.t;
+  const isStart = m.starts.includes(s);
+  const openPeriod = [...m.ps].reverse().find(p => p.start <= s && diff(p.start, s) <= 14);
+  const meta = info?.day ? `<span class="dot" style="background:var(--${info.phase})"></span>Cycle day ${info.day} · ${PHASES[info.phase].name}${info.fertile ? ' · fertile window' : ''}` : 'Before your first logged period';
+  const rows = [];
+  if (!future) {
+    rows.push(`<button class="row" data-a="checkin" data-v="${s}"><span>${log ? 'Edit check-in' : 'Add check-in'}</span><span class="r">${I.right}</span></button>`);
+    if (isStart) rows.push(`<button class="row danger" data-a="periodRemove" data-v="${s}"><span>Remove this period</span></button>`);
+    else if (!info?.loggedPeriod) rows.push(`<button class="row" data-a="periodStart" data-v="${s}"><span>Period started this day</span></button>`);
+    if (openPeriod && s > openPeriod.start && openPeriod.end !== s) rows.push(`<button class="row" data-a="periodEnd" data-v="${s}"><span>Period ended this day</span></button>`);
+  }
+  return `<div class="backdrop" data-a="closeSheet"></div><div class="sheet" role="dialog" aria-label="${fmtLong(s)}">
+    <div class="grab"></div><h2>${fmtLong(s)}</h2><div class="meta">${meta}</div>
+    ${log ? `<section class="card"><div style="display:flex;gap:14px;align-items:center">${face(log.mood)}<div><b>${MOODS[log.mood - 1]}</b> · ${ENERGY[log.energy - 1]}</div></div>
+      <div class="tags" style="margin-top:12px">${tagsOf(log).map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>
+      ${log.note ? `<p class="serif" style="margin-top:14px;font-size:17px;color:var(--ink2)"><i>${esc(log.prompt || '')}</i><br>${esc(log.note)}</p>` : ''}</section>` : ''}
+    ${future ? `<p class="fine" style="padding:0 6px">${info?.predictedPeriod ? 'Your period may start around here.' : info?.fertile ? 'Estimated fertile window.' : 'Nothing to log yet.'}</p>` : ''}
+    ${rows.length ? `<div class="list">${rows.join('')}</div>` : ''}
+  </div>`;
+}
+
+function vSettings() {
+  const st = db.settings;
+  const seg = (key, opts) => `<div class="pill-seg">${opts.map(([v, n]) => `<button class="${st[key] === v ? 'on' : ''}" data-a="setVal" data-v="${key}:${v}">${n}</button>`).join('')}</div>`;
+  return `<div class="backdrop" data-a="closeSheet"></div><div class="sheet" role="dialog" aria-label="Settings">
+    <div class="grab"></div><h2>Settings</h2><div class="meta">Your data stays in this browser only.</div>
+    <div class="list">
+      <div class="row"><span>Appearance</span>${seg('theme', [['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']])}</div>
+      <div class="row"><span>Usual cycle length</span><div class="mini-step"><button data-a="setN" data-v="cycleLength:-1">−</button><span>${st.cycleLength}</span><button data-a="setN" data-v="cycleLength:1">+</button></div></div>
+      <div class="row"><span>Usual period length</span><div class="mini-step"><button data-a="setN" data-v="periodLength:-1">−</button><span>${st.periodLength}</span><button data-a="setN" data-v="periodLength:1">+</button></div></div>
+      <div class="row"><span>Hormonal birth control</span>${seg('hormonalBC', [[false, 'No'], [true, 'Yes']])}</div>
+    </div>
+    <p class="fine" style="padding:0 6px">Auto turns dark in the evening. After two logged periods, the app uses your real averages instead of these numbers.</p>
+    <div class="list">
+      <button class="row" data-a="export"><span>Export backup</span><span class="r">.json</span></button>
+      <button class="row" data-a="import"><span>Import backup</span></button>
+      <button class="row danger" data-a="reset"><span>Delete all data</span></button>
+    </div>
+  </div>`;
+}
+
+/* ---------- render ---------- */
+function applyTheme() {
+  const t = db.settings.theme, h = new Date().getHours();
+  const dark = t === 'dark' || (t === 'auto' && (h >= 18 || h < 6));
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.querySelector('meta[name=theme-color]').content = dark ? '#000000' : '#F4F3F0';
+}
+function render() {
+  applyTheme();
+  const app = document.getElementById('app'), ov = document.getElementById('overlay');
+  if (!db.onboarded) { app.innerHTML = vOnboard(); ov.innerHTML = ''; document.body.classList.remove('locked'); return; }
+  const views = { today: vToday, calendar: vCalendar, journey: vJourney, learn: vLearn };
+  app.innerHTML = views[ui.tab]() + vTabbar();
+  ov.innerHTML = (ui.flow ? `<div class="flow">${vFlow()}</div>` : ui.sheet === 'settings' ? vSettings() : ui.sheet ? vDaySheet(ui.sheet) : '') + (ui.ask ? vAsk() : '');
+  // Slide a sheet in only when it first opens, not when its content changes.
+  if (ui.sheet && ui.sheet !== ui.shownSheet) ov.querySelectorAll('.backdrop,.sheet').forEach(el => el.classList.add('anim'));
+  ui.shownSheet = ui.sheet;
+  document.body.classList.toggle('locked', !!(ui.flow || ui.sheet || ui.ask));
+  bindCharts();
+}
+function renderOverlay() {
+  document.querySelector('#overlay .flow').innerHTML = vFlow();
+}
+let toastTimer;
+function toast(msg) {
+  document.querySelector('.toast')?.remove();
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.remove(), 3200);
+}
+
+/* ---------- period edits ---------- */
+function startPeriod(s) {
+  const m = M();
+  // A start within 9 days before an existing period moves that period earlier.
+  const near = db.periods.find(p => p.start > s && diff(s, p.start) <= 9);
+  if (near) near.start = s;
+  else if (!m.ranges.some(r => s >= r.start && s <= r.end)) db.periods.push({ start: s });
+  save();
+}
+function endPeriod(s) {
+  const p = [...db.periods].sort((a, b) => (a.start < b.start ? 1 : -1)).find(p => p.start <= s && diff(p.start, s) <= 14);
+  if (p) { p.end = s; save(); }
+}
+
+/* ---------- confirm sheet ---------- */
+// In-app replacement for window.confirm, which some browsers and home-screen apps block.
+function ask(title, text, yes, onYes) { ui.ask = { title, text, yes, onYes }; render(); }
+const vAsk = () => `<div class="backdrop ask-backdrop anim" data-a="askNo"></div>
+  <div class="sheet ask anim" role="alertdialog" aria-label="${esc(ui.ask.title)}">
+    <div class="grab"></div><h2>${esc(ui.ask.title)}</h2><p>${esc(ui.ask.text)}</p>
+    <button class="btn block period" data-a="askYes">${esc(ui.ask.yes)}</button>
+    <button class="btn block ghost" data-a="askNo">Cancel</button>
+  </div>`;
+
+/* ---------- actions ---------- */
+const A = {
+  tab(v) { ui.tab = v; ui.sheet = null; render(); window.scrollTo(0, 0); },
+  settings() { ui.sheet = 'settings'; render(); },
+  day(v) { ui.sheet = v; render(); },
+  closeSheet() { ui.sheet = null; render(); },
+  month(v) { const [y, m] = ui.month.split('-').map(Number); ui.month = iso(new Date(y, m - 1 + Number(v), 1)).slice(0, 7); render(); },
+
+  ob(v) { ui.ob.step = Math.max(0, ui.ob.step + Number(v)); render(); },
+  obN(v) {
+    const [k, n] = v.split(':'), o = ui.ob;
+    o[k] = Math.min(k === 'L' ? 45 : 10, Math.max(k === 'L' ? 18 : 2, o[k] + Number(n)));
+    render();
+  },
+  obDone() {
+    Object.assign(db.settings, { cycleLength: ui.ob.L, periodLength: ui.ob.P });
+    db.periods = [{ start: ui.ob.date }];
+    if (diff(ui.ob.date, today()) >= ui.ob.P) db.periods[0].end = addDays(ui.ob.date, ui.ob.P - 1);
+    db.onboarded = true; save(); render();
+  },
+  sample() { db = sampleData(); save(); ui.tab = 'today'; render(); },
+  clearSample() {
+    ask('Remove the sample data?', 'You can then set up your own cycle.', 'Remove sample data', () => { db = fresh(); save(); ui.ob.step = 1; });
+  },
+
+  checkin(v) { ui.sheet = null; openFlow(v); render(); },
+  fl(v) { ui.flow.step += v === 'next' ? 1 : -1; renderOverlay(); },
+  flMood(v) { ui.flow.d.mood = Number(v); renderOverlay(); setTimeout(() => { if (ui.flow?.step === 0) A.fl('next'); }, 280); },
+  flToggle(v) {
+    const [k, x] = v.split(':'), arr = ui.flow.d[k];
+    arr.includes(x) ? arr.splice(arr.indexOf(x), 1) : arr.push(x);
+    renderOverlay();
+  },
+  flFlow(v) { ui.flow.d.flow = v; renderOverlay(); },
+  flSave() {
+    const { date, d } = ui.flow;
+    db.logs[date] = { mood: d.mood, feelings: d.feelings, energy: d.energy, symptoms: d.symptoms, flow: d.flow, note: (d.note || '').trim(), prompt: d.prompt };
+    save();
+    // Logging real bleeding outside a known period starts a period on that day.
+    const info = dayInfo(date);
+    if (['light', 'medium', 'heavy'].includes(d.flow) && !info?.loggedPeriod) { startPeriod(date); toast('Period logged as starting this day. You can change it in the calendar.'); }
+    ui.flow.step = STEPS.indexOf('done');
+    renderOverlay();
+  },
+  flClose() { ui.flow = null; render(); },
+
+  periodStart(v) { startPeriod(v); ui.sheet = null; render(); toast('Period start saved.'); },
+  periodEnd(v) { endPeriod(v); ui.sheet = null; render(); toast('Period end saved.'); },
+  periodRemove(v) {
+    ask('Remove this period?', 'Your check-ins stay. Only the period start is removed.', 'Remove period', () => {
+      db.periods = db.periods.filter(p => p.start !== v);
+      save(); ui.sheet = null;
+    });
+  },
+
+  setVal(v) {
+    const [k, x] = v.split(':');
+    db.settings[k] = x === 'true' ? true : x === 'false' ? false : x;
+    save(); render();
+  },
+  setN(v) {
+    const [k, n] = v.split(':'), lim = k === 'cycleLength' ? [18, 45] : [2, 10];
+    db.settings[k] = Math.min(lim[1], Math.max(lim[0], db.settings[k] + Number(n)));
+    save(); render();
+  },
+  export() {
+    const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `phase-backup-${today()}.json`; a.click();
+    URL.revokeObjectURL(a.href);
+  },
+  import() { document.getElementById('importFile').click(); },
+  reset() {
+    ask('Delete all data?', 'This removes every period and check-in from this device. It cannot be undone. Export a backup first if you want to keep them.', 'Delete everything', () => {
+      db = fresh(); save(); ui.sheet = null; ui.ob.step = 0;
+    });
+  },
+  askYes() { const f = ui.ask.onYes; ui.ask = null; f(); render(); },
+  askNo() { ui.ask = null; render(); },
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if (el && A[el.dataset.a]) A[el.dataset.a](el.dataset.v, el);
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'energy') { ui.flow.d.energy = Number(e.target.value); document.getElementById('energy-label').textContent = ENERGY[ui.flow.d.energy - 1]; }
+  if (e.target.id === 'note') {
+    ui.flow.d.note = e.target.value;
+    // Update the save button label without re-rendering the textarea.
+    document.querySelector('[data-a=flSave]').textContent = e.target.value.trim() ? 'Save' : 'Skip and save';
+  }
+  if (e.target.id === 'ob-date' && e.target.value) ui.ob.date = e.target.value;
+});
+document.getElementById('importFile').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data.periods) || typeof data.logs !== 'object') throw new Error();
+    ask('Replace your data with this backup?', `The backup has ${data.periods.length} periods and ${Object.keys(data.logs).length} check-ins. Your current data will be replaced.`, 'Replace my data', () => {
+      db = { ...fresh(), ...data, settings: { ...fresh().settings, ...data.settings }, onboarded: true };
+      save(); ui.sheet = null; toast('Backup imported.');
+    });
+  } catch { toast('That file is not a valid backup.'); }
+});
+// Re-check the time-of-day theme and the date when the app comes back into view.
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !ui.flow) render(); });
+
+/* ---------- sample data ---------- */
+function sampleData() {
+  let seed = 42;
+  const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const d = fresh();
+  d.onboarded = true; d.settings.sample = true;
+  const lens = [28, 30, 27, 29], plens = [5, 4, 5, 6, 5];
+  let s = addDays(today(), -16);
+  const starts = [s];
+  for (const l of lens) { s = addDays(s, -l); starts.unshift(s); }
+  d.periods = starts.map((st, i) => ({ start: st, end: addDays(st, plens[i] - 1) }));
+  const base = { menstrual: 2.9, follicular: 3.9, ovulatory: 4.3, luteal: 3.6, premenstrual: 2.5 };
+  const feel = {
+    menstrual: [['Tired', 0.6], ['Calm', 0.35], ['Low', 0.3], ['Sensitive', 0.25]],
+    follicular: [['Energetic', 0.5], ['Focused', 0.45], ['Happy', 0.4], ['Content', 0.35]],
+    ovulatory: [['Social', 0.6], ['Confident', 0.55], ['Happy', 0.5], ['Energetic', 0.4]],
+    luteal: [['Calm', 0.45], ['Content', 0.4], ['Focused', 0.3], ['Tired', 0.25]],
+    premenstrual: [['Irritable', 0.5], ['Sensitive', 0.5], ['Anxious', 0.35], ['Tired', 0.4], ['Overwhelmed', 0.2]],
+  };
+  const sym = {
+    menstrual: [['Cramps', 0.7], ['Back pain', 0.35], ['Headache', 0.2]],
+    follicular: [],
+    ovulatory: [['Egg-white discharge', 0.55], ['High libido', 0.45]],
+    luteal: [['Cravings', 0.35], ['Bloating', 0.2]],
+    premenstrual: [['Bloating', 0.6], ['Sore breasts', 0.5], ['Cravings', 0.5], ['Acne', 0.3], ['Poor sleep', 0.3]],
+  };
+  const notes = ['Long walk after work. Felt clearer after.', 'Short fuse in a meeting. Noticed it and let it go.', 'Dinner with friends, lots of laughing.', 'Needed an early night. Took it.', 'Good focus all morning.'];
+  const tmp = db; db = d; ver++;
+  for (let day = starts[0]; day < today(); day = addDays(day, 1)) {
+    if (rnd() > 0.86 && diff(day, today()) > 6) continue; // keep the last week logged so the streak shows
+    const info = dayInfo(day), ph = info.phase;
+    const mood = Math.min(5, Math.max(1, Math.round(base[ph] + (rnd() - 0.5) * 1.8)));
+    const flowDay = info.loggedPeriod ? info.day : 0;
+    d.logs[day] = {
+      mood, energy: Math.min(5, Math.max(1, Math.round(base[ph] + (rnd() - 0.5) * 2))),
+      feelings: feel[ph].filter(([, p]) => rnd() < p).map(([x]) => x),
+      symptoms: sym[ph].filter(([, p]) => rnd() < p).map(([x]) => x),
+      flow: flowDay ? ['medium', 'heavy', 'medium', 'light', 'spotting', 'spotting'][flowDay - 1] || 'spotting' : 'none',
+      note: rnd() < 0.25 ? notes[Math.floor(rnd() * notes.length)] : '',
+      prompt: pick(PHASES[ph].prompts, day),
+    };
+  }
+  db = tmp; ver++;
+  return d;
+}
+
+render();
+</script>
+</body>
+</html>
