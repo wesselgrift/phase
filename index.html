@@ -715,8 +715,9 @@ function vToday() {
     <button class="btn period" style="margin-top:20px" data-a="periodStart" data-v="${t}">Period started today</button>
     <button class="link" style="display:block;margin:10px auto 0" data-a="tab" data-v="calendar">Pick an earlier day</button></section></main>`;
   const info = dayInfo(t);
-  const evening = h >= 15;
-  const greet = h < 12 ? 'Good morning.' : h < 18 ? 'Good afternoon.' : 'Good evening.';
+  const part = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening', evening = part === 'evening';
+  const greet = `Good ${part}.`;
+  const label = evening ? 'Evening reflection' : part === 'afternoon' ? 'Afternoon check-in' : 'Morning check-in';
   const ph = PHASES[info.phase];
   const st = streak();
   const q = pick(QUOTES, t + 'q');
@@ -724,14 +725,14 @@ function vToday() {
 
   const checkin = log
     ? `<section class="card invert checkin">
-        <div class="eyebrow">${evening ? I.moon : I.sun} ${evening ? 'Evening reflection' : 'Morning check-in'}</div>
+        <div class="eyebrow">${evening ? I.moon : I.sun} ${label}</div>
         <div class="done">${face(log.mood)}<div><div style="font-weight:600">You checked in · ${MOODS[log.mood - 1]}</div>
         <div class="tags">${tagsOf(log).slice(0, 5).map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div></div></div>
         <button class="btn light" style="margin-top:18px" data-a="checkin" data-v="${t}">Edit</button>
       </section>`
     : `<section class="card invert checkin">
-        <div class="eyebrow">${evening ? I.moon : I.sun} ${evening ? 'Evening reflection' : 'Morning check-in'}</div>
-        <h2>${evening ? 'How are you feeling this evening?' : 'How are you feeling this morning?'}</h2>
+        <div class="eyebrow">${evening ? I.moon : I.sun} ${label}</div>
+        <h2>How are you feeling this ${part}?</h2>
         <button class="btn light" data-a="checkin" data-v="${t}">Begin check-in</button>
       </section>`;
 
