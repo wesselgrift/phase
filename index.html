@@ -910,7 +910,7 @@ function vToday() {
       : m.irregular ? `<p class="fine sure">Your recent cycles ranged from ${Math.min(...m.recent)} to ${Math.max(...m.recent)} days, so this is a rough estimate.</p>` : ''}
     ${installDue() ? `<section class="card install">
       <div class="eyebrow">${I.phone} Home Screen</div>
-      <h2>Keep phase. one tap away</h2>
+      <h2>Keep phase one tap away</h2>
       <p class="lede">It opens full screen, works offline, and your browser is less likely to clear your data.</p>
       <div class="actions"><button class="btn" data-a="install">${home.ios ? 'Show me how' : 'Install app'}</button><button class="link" data-a="installLater">Not now</button></div>
     </section>` : ''}
@@ -1203,7 +1203,7 @@ function vReport() {
       <table class="hist"><thead><tr><th>Symptom</th><th>Days</th><th>Of check-ins</th>${bc ? '' : '<th>Most in</th>'}</tr></thead><tbody>${sym}</tbody></table></section>` : ''}
     ${moods && !bc ? `<section class="card"><h2>Mood by phase</h2>
       <table class="hist"><thead><tr><th>Phase</th><th>Average mood</th><th>Check-ins</th></tr></thead><tbody>${moods}</tbody></table></section>` : ''}
-    <p class="fine" style="padding:0 6px">Self-reported in phase., a private cycle tracker. Phases are estimated from period dates. This is not a diagnosis.</p>
+    <p class="fine" style="padding:0 6px">Self-reported in phase, a private cycle tracker. Phases are estimated from period dates. This is not a diagnosis.</p>
   </main>`;
 }
 
@@ -1249,7 +1249,7 @@ function vOnboard() {
     </div></div>
     <div class="flow-foot" style="flex-direction:column;align-items:center"><button class="btn block" data-a="ob" data-v="1">Begin</button>
     <button class="link" data-a="sample">Explore with sample data</button>
-    ${canInstall() && home.ios ? `<p class="fine install-hint">Using phase. on your phone? Add it to your Home Screen first. Data you enter in Safari stays in Safari. <button class="link" data-a="install">Show me how</button></p>` : ''}</div></div>`;
+    ${canInstall() && home.ios ? `<p class="fine install-hint">Using phase on your phone? Add it to your Home Screen first. Data you enter in Safari stays in Safari. <button class="link" data-a="install">Show me how</button></p>` : ''}</div></div>`;
   let body;
   if (s === 1) body = `<h1>When did your last period start?</h1><p class="sub">The first day of bleeding. A guess is fine. You can fix it later.</p>
       <label class="date-in date-pick"><span id="ob-date-label">${fmtDate(o.date)}</span>
@@ -1265,7 +1265,7 @@ function vInstall() {
   const hasData = db && !db.settings.sample && (db.periods.length || Object.keys(db.logs).length);
   return `<div class="backdrop" data-a="closeSheet"></div><div class="sheet" role="dialog" aria-label="Add to Home Screen">
     <div class="grab"></div><h2>Add to Home Screen</h2>
-    <div class="meta">phase. then opens like an app: full screen, and offline too.</div>
+    <div class="meta">phase then opens like an app: full screen, and offline too.</div>
     <ol class="steps">
       <li><span class="step-ic">${I.share}</span><span>Tap <b>Share</b> in Safari. If you don’t see it, tap <b>•••</b> first.</span></li>
       <li><span class="step-ic">${I.addSq}</span><span>Tap <b>Add to Home Screen</b>. You may need to tap <b>View More</b> to find it.</span></li>
