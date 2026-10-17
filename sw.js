@@ -26,7 +26,9 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req)
+    // no-cache: always check with the server (cheap 304 when unchanged), so the HTTP cache
+    // (10 minutes on GitHub Pages) never serves an old page after a deploy.
+    e.respondWith(fetch(req, { cache: 'no-cache' })
       .then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put('./', copy)); return res; })
       .catch(() => caches.match('./')));
     return;
