@@ -279,6 +279,15 @@ input.pc-in:last-child{border-bottom:0}
 .ask{z-index:31;text-align:center}
 .ask p{color:var(--ink2);margin:8px 6px 20px}
 .ask .btn{margin-top:10px}
+.install .eyebrow .ic{width:16px;height:16px}
+.install h2{margin-top:12px}
+.install .actions{display:flex;align-items:center;gap:8px;margin-top:18px}
+.install-hint{text-align:center;max-width:330px;margin:8px auto 0}
+.install-hint .link{padding:0}
+.steps{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.steps li{display:flex;gap:14px;align-items:center;background:var(--card);border-radius:18px;padding:12px 16px;font-size:15px;color:var(--ink2)}
+.steps b{color:var(--ink);font-weight:600}
+.step-ic{width:40px;height:40px;border-radius:12px;background:var(--chip);display:grid;place-items:center;flex:none;color:var(--ink)}
 .report-bar{display:flex;justify-content:space-between;gap:10px}
 .report .hist{font-size:13.5px}
 .report .hist th,.report .hist td{padding-right:8px;white-space:nowrap}
@@ -320,7 +329,7 @@ const pick = (arr, seed) => arr[hash(seed) % arr.length];
 const KEY = 'phase.v1';
 // Bump SCHEMA and extend migrate() when the shape of the stored data changes.
 const SCHEMA = 1;
-const fresh = () => ({ v: SCHEMA, onboarded: false, settings: { cycleLength: 28, periodLength: 5, theme: 'auto', hormonalBC: false, sample: false, lastBackup: null, backupSnooze: null }, periods: [], logs: {} });
+const fresh = () => ({ v: SCHEMA, onboarded: false, settings: { cycleLength: 28, periodLength: 5, theme: 'auto', hormonalBC: false, sample: false, lastBackup: null, backupSnooze: null, installSnooze: null }, periods: [], logs: {} });
 // Brings stored data or a backup from any older version up to the current shape.
 function migrate(data) {
   if ((data.v || 0) > SCHEMA) throw new Error('newer');
@@ -481,6 +490,10 @@ const I = {
   left: svg('<path d="M15 5l-7 7 7 7"/>'),
   right: svg('<path d="M9 5l7 7-7 7"/>'),
   back: svg('<path d="M19 12H5M11 6l-6 6 6 6"/>'),
+  share: svg('<path d="M12 3v12M8 7l4-4 4 4"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16"/>'),
+  addSq: svg('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>'),
+  check: svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
+  phone: svg('<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>'),
   rise: svg('<path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 7v3M5.6 10.6l1.8 1.8M18.4 10.6l-1.8 1.8"/>'),
 };
 function face(m, cls = 'face') {
@@ -683,6 +696,19 @@ function fromYourLog(phase, day) {
 }
 
 /* ---------- ui state ---------- */
+/* ---------- home screen install ---------- */
+// iOS has no install prompt, so it gets instructions. Chrome, Edge and Android get the browser's own prompt.
+const home = {
+  standalone: matchMedia('(display-mode: standalone)').matches || navigator.standalone === true,
+  // iPadOS reports a Mac user agent, so also check for touch.
+  ios: /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+  prompt: null,
+};
+const canInstall = () => !home.standalone && (home.ios || !!home.prompt);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); home.prompt = e; if (db && !ui.flow) render(); });
+window.addEventListener('appinstalled', () => { home.prompt = null; if (db && !ui.flow) render(); });
+const installDue = () => canInstall() && !(db.settings.installSnooze && today() < db.settings.installSnooze);
+
 const partOfDay = () => { const h = new Date().getHours(); return h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening'; };
 const ui = { tab: 'today', month: today().slice(0, 7), flow: null, sheet: null, ob: { step: 0, date: addDays(today(), -10), L: 28, P: 5 } };
 
@@ -882,6 +908,12 @@ function vToday() {
     </div>
     ${m.ongoing ? '' : m.recent.length < 2 ? `<p class="fine sure">A rough estimate for now. It gets more accurate as you log more periods.</p>`
       : m.irregular ? `<p class="fine sure">Your recent cycles ranged from ${Math.min(...m.recent)} to ${Math.max(...m.recent)} days, so this is a rough estimate.</p>` : ''}
+    ${installDue() ? `<section class="card install">
+      <div class="eyebrow">${I.phone} Home Screen</div>
+      <h2>Keep phase. one tap away</h2>
+      <p class="lede">It opens full screen, works offline, and your browser is less likely to clear your data.</p>
+      <div class="actions"><button class="btn" data-a="install">${home.ios ? 'Show me how' : 'Install app'}</button><button class="link" data-a="installLater">Not now</button></div>
+    </section>` : ''}
     ${liftCard}
     ${checkin}
     ${phaseCard}
@@ -1216,7 +1248,8 @@ function vOnboard() {
       <p class="sub" style="font-size:18px">A calm daily check-in that shows how your hormones shape your body and mind, cycle after cycle.</p>
     </div></div>
     <div class="flow-foot" style="flex-direction:column;align-items:center"><button class="btn block" data-a="ob" data-v="1">Begin</button>
-    <button class="link" data-a="sample">Explore with sample data</button></div></div>`;
+    <button class="link" data-a="sample">Explore with sample data</button>
+    ${canInstall() && home.ios ? `<p class="fine install-hint">Using phase. on your phone? Add it to your Home Screen first. Data you enter in Safari stays in Safari. <button class="link" data-a="install">Show me how</button></p>` : ''}</div></div>`;
   let body;
   if (s === 1) body = `<h1>When did your last period start?</h1><p class="sub">The first day of bleeding. A guess is fine. You can fix it later.</p>
       <label class="date-in date-pick"><span id="ob-date-label">${fmtDate(o.date)}</span>
@@ -1226,6 +1259,23 @@ function vOnboard() {
   if (s === 3) body = `<h1>How many days do you usually bleed?</h1><p class="sub">The app learns your real numbers as you log.</p>
       <div class="stepper"><button data-a="obN" data-v="P:-1">−</button><div class="n">${o.P}</div><button data-a="obN" data-v="P:1">+</button></div><div class="stepper-unit">days</div>`;
   return `<div class="flow page">${prog}<div class="flow-body"><div class="step" key="${s}">${body}</div></div>${s === 3 ? foot('obDone', 'Start') : foot('ob')}</div>`;
+}
+
+function vInstall() {
+  const hasData = db && !db.settings.sample && (db.periods.length || Object.keys(db.logs).length);
+  return `<div class="backdrop" data-a="closeSheet"></div><div class="sheet" role="dialog" aria-label="Add to Home Screen">
+    <div class="grab"></div><h2>Add to Home Screen</h2>
+    <div class="meta">phase. then opens like an app: full screen, and offline too.</div>
+    <ol class="steps">
+      <li><span class="step-ic">${I.share}</span><span>Tap <b>Share</b> in Safari. If you don’t see it, tap <b>•••</b> first.</span></li>
+      <li><span class="step-ic">${I.addSq}</span><span>Tap <b>Add to Home Screen</b>. You may need to tap <b>View More</b> to find it.</span></li>
+      <li><span class="step-ic">${I.check}</span><span>If you see <b>Open as Web App</b>, keep it on. Then tap <b>Add</b>.</span></li>
+    </ol>
+    ${hasData ? `<section class="card note-card" style="margin-top:12px"><h3>Bring your data along</h3>
+      <p class="lede" style="margin-top:0">The Home Screen app starts empty, because it does not share data with Safari. Export a backup here. Then open the app and import it in Settings.</p>
+      <button class="btn ghost" style="margin-top:14px" data-a="export">Export backup</button></section>` : ''}
+    <button class="btn block" style="margin-top:16px" data-a="closeSheet">Got it</button>
+  </div>`;
 }
 
 /* ---------- passcode ---------- */
@@ -1345,6 +1395,7 @@ function vSettings() {
       ? `<button class="row" data-a="pcSetup"><span>Change passcode</span><span class="r">${I.right}</span></button>
          <button class="row" data-a="pcOff"><span>Turn off passcode</span></button>`
       : `<button class="row" data-a="pcSetup"><span>Passcode lock</span><span class="r">Off ${I.right}</span></button>`}</div>` : ''}
+    ${canInstall() ? `<div class="list"><button class="row" data-a="install"><span>Add to Home Screen</span><span class="r">${I.right}</span></button></div>` : ''}
     <div class="list">
       <button class="row" data-a="report"><span>Doctor summary</span><span class="r">Print or PDF ${I.right}</span></button>
       <button class="row" data-a="ics"><span>Add predictions to calendar</span><span class="r">.ics</span></button>
@@ -1370,10 +1421,14 @@ function render() {
   applyTheme();
   const app = document.getElementById('app'), ov = document.getElementById('overlay');
   if (!db) { app.innerHTML = vLock(); ov.innerHTML = ui.ask ? vAsk() : ''; document.body.classList.toggle('locked', !!ui.ask); return; }
-  if (!db.onboarded) { app.innerHTML = vOnboard(); ov.innerHTML = ''; document.body.classList.remove('locked'); return; }
   const views = { today: vToday, calendar: vCalendar, journey: vJourney, learn: vLearn };
-  app.innerHTML = ui.report ? vReport() : views[ui.tab]() + vTabbar();
-  ov.innerHTML = (ui.flow ? `<div class="flow">${vFlow()}</div>` : ui.sheet === 'settings' ? vSettings() : ui.sheet === 'passcode' ? vPasscode() : ui.sheet ? vDaySheet(ui.sheet) : '') + (ui.ask ? vAsk() : '');
+  if (!db.onboarded) {
+    app.innerHTML = vOnboard();
+    ov.innerHTML = ui.sheet === 'install' ? vInstall() : '';
+  } else {
+    app.innerHTML = ui.report ? vReport() : views[ui.tab]() + vTabbar();
+    ov.innerHTML = (ui.flow ? `<div class="flow">${vFlow()}</div>` : ui.sheet === 'settings' ? vSettings() : ui.sheet === 'passcode' ? vPasscode() : ui.sheet === 'install' ? vInstall() : ui.sheet ? vDaySheet(ui.sheet) : '') + (ui.ask ? vAsk() : '');
+  }
   // Slide a sheet in only when it first opens, not when its content changes.
   if (ui.sheet && ui.sheet !== ui.shownSheet) ov.querySelectorAll('.backdrop,.sheet').forEach(el => el.classList.add('anim'));
   ui.shownSheet = ui.sheet;
@@ -1506,6 +1561,15 @@ const A = {
     if (!Object.keys(db.logs).length) return toast('No check-ins to export yet.');
     download(`phase-check-ins-${today()}.csv`, csvFile(), 'text/csv');
   },
+  async install() {
+    if (!home.prompt) { ui.sheet = 'install'; render(); return; }
+    const p = home.prompt;
+    home.prompt = null;
+    p.prompt();
+    await p.userChoice;
+    render();
+  },
+  installLater() { db.settings.installSnooze = addDays(today(), 14); save(); render(); },
   snoozeBackup() { db.settings.backupSnooze = addDays(today(), 7); save(); render(); },
   import() { document.getElementById('importFile').click(); },
   reset() {
