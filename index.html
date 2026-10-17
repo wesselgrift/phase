@@ -241,8 +241,7 @@ textarea::placeholder{color:var(--muted)}
 .done-step .flame{width:76px;height:76px;border-radius:50%;background:var(--card);display:grid;place-items:center;margin-bottom:10px}
 .done-step .flame .ic{width:36px;height:36px;stroke:var(--period)}
 .done-step .echo-line{font-family:var(--serif);font-size:19px;color:var(--ink2);margin-top:18px;max-width:330px}
-/* iOS gives date inputs a minimum width, so reset it or the field overflows the screen. */
-.date-in{display:block;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left;margin-top:36px;width:100%;height:60px;border-radius:20px;border:0;background:var(--card);color:var(--ink);font:500 20px var(--sans);padding:0 18px}
+.date-in{display:block;margin-top:36px;width:100%;height:60px;border-radius:20px;border:0;background:var(--card);color:var(--ink);font:500 20px var(--sans);padding:0 18px}
 .stepper{display:flex;align-items:center;justify-content:center;gap:28px;margin-top:48px}
 .stepper button{width:56px;height:56px;border-radius:50%;background:var(--card);font-size:26px;font-weight:300}
 .stepper .n{font-family:var(--serif);font-size:72px;font-weight:500;min-width:110px;text-align:center;line-height:1}
@@ -251,7 +250,10 @@ textarea::placeholder{color:var(--muted)}
 
 .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20}
 .backdrop.anim{animation:fade .25s both}
-.date-in::-webkit-date-and-time-value{text-align:left}
+/* iOS date inputs ignore width and vertical alignment. So show the date in our own box,
+   with an invisible native input on top that still opens the system date picker. */
+.date-pick{position:relative;display:flex;align-items:center;overflow:hidden;cursor:pointer}
+.date-pick input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:16px;-webkit-appearance:none;appearance:none}
 /* Full-screen pages. In a home-screen app, 100vh includes the status bar, so prefer dvh. */
 .flow.page{position:static;min-height:100vh;min-height:100dvh}
 .sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;background:var(--bg);border-radius:28px 28px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom) + 24px);z-index:21}
@@ -308,6 +310,7 @@ const today = () => iso(new Date());
 const fmt = (s, o) => parse(s).toLocaleDateString('en-GB', o);
 const fmtLong = s => fmt(s, { weekday: 'long', day: 'numeric', month: 'long' });
 const fmtShort = s => fmt(s, { day: 'numeric', month: 'short' });
+const fmtDate = s => fmt(s, { day: 'numeric', month: 'long', year: 'numeric' });
 const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
@@ -1216,7 +1219,8 @@ function vOnboard() {
     <button class="link" data-a="sample">Explore with sample data</button></div></div>`;
   let body;
   if (s === 1) body = `<h1>When did your last period start?</h1><p class="sub">The first day of bleeding. A guess is fine. You can fix it later.</p>
-      <input type="date" class="date-in" id="ob-date" value="${o.date}" max="${today()}">`;
+      <label class="date-in date-pick"><span id="ob-date-label">${fmtDate(o.date)}</span>
+        <input type="date" id="ob-date" value="${o.date}" max="${today()}" aria-label="First day of your last period"></label>`;
   if (s === 2) body = `<h1>How long is your cycle, usually?</h1><p class="sub">From the first day of one period to the first day of the next. Most cycles are 21–35 days.</p>
       <div class="stepper"><button data-a="obN" data-v="L:-1">−</button><div class="n">${o.L}</div><button data-a="obN" data-v="L:1">+</button></div><div class="stepper-unit">days</div>`;
   if (s === 3) body = `<h1>How many days do you usually bleed?</h1><p class="sub">The app learns your real numbers as you log.</p>
@@ -1548,6 +1552,8 @@ const A = {
 };
 
 document.addEventListener('click', e => {
+  // With a mouse, clicking the invisible date input only focuses it, so open the picker.
+  if (e.target.id === 'ob-date' && matchMedia('(pointer: fine)').matches) try { e.target.showPicker(); } catch {}
   const el = e.target.closest('[data-a]');
   if (el && A[el.dataset.a]) A[el.dataset.a](el.dataset.v, el);
 });
@@ -1561,7 +1567,7 @@ document.addEventListener('input', e => {
     // Update the save button label without re-rendering the textarea.
     document.querySelector('[data-a=flSave]').textContent = e.target.value.trim() ? 'Save' : 'Skip and save';
   }
-  if (e.target.id === 'ob-date' && e.target.value) ui.ob.date = e.target.value;
+  if (e.target.id === 'ob-date' && e.target.value) { ui.ob.date = e.target.value; document.getElementById('ob-date-label').textContent = fmtDate(ui.ob.date); }
 });
 document.getElementById('importFile').addEventListener('change', async e => {
   const file = e.target.files[0];
