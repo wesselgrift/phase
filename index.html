@@ -250,62 +250,139 @@ textarea::placeholder{color:var(--muted)}
 .stepper .n{font-family:var(--serif);font-size:72px;font-weight:500;min-width:110px;text-align:center;line-height:1}
 .stepper-unit{text-align:center;color:var(--muted);margin-top:6px}
 /* welcome story */
-.story{flex:1;display:flex;flex-direction:column;width:100%;max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 20px 0;min-height:0}
+.welcome{position:relative;overflow:hidden}
+.welcome>.story,.welcome>.flow-foot{position:relative;z-index:1}
+/* Soft phase-coloured light behind the scenes. A mask keeps it a blur-free radial glow. */
+.st-glow{position:absolute;left:50%;top:38%;width:min(560px,140vw);aspect-ratio:1;margin:calc(min(560px,140vw)/-2) 0 0 calc(min(560px,140vw)/-2);
+  background-color:var(--glow,var(--menstrual));opacity:.3;pointer-events:none;transition:background-color 1.2s ease;
+  -webkit-mask-image:radial-gradient(closest-side,#000,rgba(0,0,0,.4) 45%,transparent);mask-image:radial-gradient(closest-side,#000,rgba(0,0,0,.4) 45%,transparent);
+  animation:st-drift 9s ease-in-out infinite alternate}
+[data-theme=dark] .st-glow{opacity:.2}
+@keyframes st-drift{from{transform:translate(-4%,2%) scale(1)}to{transform:translate(5%,-3%) scale(1.14)}}
+.story{--e-out:cubic-bezier(.16,1,.3,1);--e-spring:cubic-bezier(.34,1.56,.64,1);--e-soft:cubic-bezier(.45,0,.2,1);
+  flex:1;display:flex;flex-direction:column;width:100%;max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 20px 0;min-height:0}
 .st-bars{display:flex;gap:5px}
-.st-bars i{flex:1;height:3px;border-radius:2px;background:var(--line);overflow:hidden;position:relative}
+.st-bars i{flex:1;height:3px;border-radius:2px;background:color-mix(in srgb,var(--ink) 12%,transparent);overflow:hidden;position:relative}
 .st-bars b{position:absolute;inset:0;width:0;background:var(--ink)}
 .st-bars i.done b{width:100%}
 .st-bars i.now b{animation:st-fill 6s linear forwards}
 @keyframes st-fill{to{width:100%}}
-.st-scenes{flex:1;position:relative;cursor:pointer;min-height:420px}
-.st-scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .45s;pointer-events:none}
-.st-scene.active{opacity:1}
+.st-scenes{flex:1;position:relative;cursor:pointer;min-height:410px}
+/* Scenes hand over: the old one blurs and shrinks away, the new one settles in from slightly larger. */
+.st-scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transform:scale(1.04);pointer-events:none;
+  transition:opacity .45s ease,transform .9s var(--e-out),filter .45s ease}
+.st-scene.active{opacity:1;transform:none;transition-delay:.12s,0s,0s}
+.st-scene.active.leave{opacity:0;transform:scale(.95);filter:blur(8px);transition-delay:0s}
 .st-vis{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
 .st-cap{padding-bottom:8px}
-.st-cap h1{font-family:var(--serif);font-weight:500;font-size:30px;line-height:1.15;letter-spacing:-.01em;margin-top:6px}
-.st-cap .brand{font-size:40px}
-.st-rise{opacity:0;transform:translateY(12px)}
-.active .st-rise{animation:rise .6s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d,0s)}
-.st-ring{width:min(250px,66vw);height:auto;overflow:visible}
-.st-arc{stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
-.active .st-arc{animation:st-draw .9s cubic-bezier(.3,.7,.2,1) forwards}
+.st-cap h1{font-family:var(--serif);font-weight:500;font-size:30px;line-height:1.15;letter-spacing:-.01em;margin-top:4px}
+.st-cap .brand{font-size:40px;line-height:1.1}
+/* Word-by-word reveal: each word slides up out of its own mask. */
+.st-w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .03em .16em;margin:0 -.03em -.16em}
+.st-w>span{display:inline-block;transform:translateY(140%)}
+.active .st-w>span{animation:st-word .85s var(--e-out) var(--d) forwards}
+@keyframes st-word{to{transform:none}}
+@keyframes st-pop{to{opacity:1;transform:none}}
+@keyframes st-float{to{transform:translateY(-5px)}}
+
+/* 1 · ring */
+.st-ringbox{position:relative;width:min(262px,68vw);aspect-ratio:1}
+.active .st-ringbox{animation:st-breathe 4.5s 1.8s ease-in-out infinite alternate}
+@keyframes st-breathe{to{transform:scale(1.03)}}
+.st-ring{width:100%;height:100%;overflow:visible}
+.st-arc{stroke-dasharray:1;stroke-dashoffset:1;opacity:0;transition:stroke-width .5s var(--e-spring)}
+.active .st-arc{animation:st-draw 1s var(--e-out) var(--d) forwards}
 @keyframes st-draw{0%{opacity:1;stroke-dashoffset:1}100%{opacity:1;stroke-dashoffset:0}}
-.st-check{display:flex;flex-direction:column;align-items:center}
-.st-faces{display:flex;gap:6px;margin-top:16px;position:relative}
-.st-faces span{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--muted);width:50px}
-.st-faces svg{width:44px;height:44px;color:var(--muted)}
-.active .st-faces .pick{animation:st-pickt .01s 1.1s forwards}
-.active .st-faces .pick svg{animation:st-pick .5s 1.1s forwards}
-@keyframes st-pick{to{transform:scale(1.2);color:var(--ink)}}
+.st-seg{transition:opacity .5s ease}
+.lit .st-seg:not(.on){opacity:.25}
+.st-seg.on .st-arc{stroke-width:17}
+.st-mk,.st-halo{transform-box:fill-box;transform-origin:center;opacity:0;transform:scale(0)}
+.st-mk.show{opacity:1;transform:none;transition:transform .55s var(--e-spring),opacity .2s}
+.st-halo.show{animation:st-halo 1.5s ease-out infinite}
+@keyframes st-halo{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.7)}}
+.st-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none}
+.st-roll{position:relative;width:70%;overflow:hidden;text-align:center}
+.st-ph{height:36px;font-family:var(--serif);font-size:27px;font-weight:500;letter-spacing:-.01em}
+.st-th{height:20px;font-size:14px;color:var(--muted)}
+.st-roll span{position:absolute;left:0;right:0;animation:st-rollin .6s var(--e-out) both}
+.st-th span{animation-delay:.06s}
+.st-roll span.out{animation:st-rollout .4s var(--e-soft) forwards}
+@keyframes st-rollin{from{transform:translateY(105%);opacity:0}}
+@keyframes st-rollout{to{transform:translateY(-105%);opacity:0}}
+
+/* 2 · check-in */
+.st-card{position:relative;width:min(320px,100%);background:var(--card);border-radius:28px;padding:22px 14px 20px;text-align:center;
+  box-shadow:0 1px 1px rgba(0,0,0,.03),0 22px 44px -16px rgba(0,0,0,.22);opacity:0;transform:translateY(46px) scale(.92)}
+.active .st-card{animation:st-pop .95s var(--e-spring) .1s forwards,st-float 4s 1.6s ease-in-out infinite alternate}
+.st-q{font-family:var(--serif);font-size:22px;font-weight:500;margin:6px 0 16px}
+.st-faces{display:flex;justify-content:center;gap:2px}
+.st-faces>span{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--muted);width:54px;opacity:0;transform:scale(.4) translateY(8px)}
+.active .st-faces>span{animation:st-pop .6s var(--e-spring) var(--d) forwards}
+.active .st-faces>.pick{animation:st-pop .6s var(--e-spring) var(--d) forwards,st-pickt .01s 1.25s forwards}
 @keyframes st-pickt{to{color:var(--ink);font-weight:600}}
-.st-tap{position:absolute;left:168px;top:0;width:50px;height:50px;border-radius:50%;background:var(--ink);opacity:0;transform:scale(.4)}
-.active .st-tap{animation:st-tapk .7s .8s ease-out}
-@keyframes st-tapk{0%{opacity:.18;transform:scale(.4)}100%{opacity:0;transform:scale(1.6)}}
-.st-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:24px;max-width:260px}
-.st-chip{padding:8px 13px;border-radius:17px;background:var(--card);font-size:13.5px;font-weight:500}
-.active .st-chip.on{animation:rise .6s cubic-bezier(.2,.8,.2,1) forwards,st-chipon .25s forwards;animation-delay:var(--d),var(--o)}
-@keyframes st-chipon{to{background:var(--ink);color:var(--bg)}}
-.st-rows{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px}
-.st-mr{display:grid;grid-template-columns:repeat(28,1fr);gap:3px;height:26px;align-items:end}
-.st-mr i{display:block;border-radius:1px;background:var(--muted);transform:scaleY(0);transform-origin:bottom}
+.st-face{position:relative;display:block;width:44px;height:44px}
+.st-face svg{width:44px;height:44px;display:block;color:var(--muted)}
+.active .pick .st-face svg{animation:st-pick .9s 1.1s var(--e-soft) forwards}
+@keyframes st-pick{0%{transform:none}18%{transform:scale(.8)}48%{transform:scale(1.34) rotate(-9deg);color:var(--ink)}74%{transform:scale(1.12) rotate(5deg);color:var(--ink)}100%{transform:scale(1.2);color:var(--ink)}}
+.st-spark{position:absolute;left:50%;top:50%}
+.st-spark i{position:absolute;left:-1.5px;top:-5px;width:3px;height:10px;border-radius:2px;opacity:0}
+.active .st-spark i{animation:st-spark .75s 1.3s ease-out forwards}
+@keyframes st-spark{0%{opacity:0;transform:rotate(var(--a)) translateY(-20px) scaleY(.3)}25%{opacity:1;transform:rotate(var(--a)) translateY(-31px) scaleY(1)}100%{opacity:0;transform:rotate(var(--a)) translateY(-44px) scaleY(.2)}}
+.st-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:18px}
+.st-chip{padding:8px 13px;border-radius:17px;background:var(--chip);font-size:13.5px;font-weight:500;opacity:0;transform:translateY(-12px) scale(.85)}
+.active .st-chip{animation:st-pop .6s var(--e-spring) var(--d) forwards}
+.active .st-chip.on{animation:st-pop .6s var(--e-spring) var(--d) forwards,st-chipon .5s var(--e-soft) var(--o) forwards}
+@keyframes st-chipon{0%{transform:none}30%{transform:scale(.88)}65%{transform:scale(1.09);background:var(--ink);color:var(--bg)}100%{transform:none;background:var(--ink);color:var(--bg)}}
+.st-finger{position:absolute;left:0;top:0;width:38px;height:38px;border-radius:50%;pointer-events:none;z-index:3;opacity:0;
+  background:color-mix(in srgb,var(--ink) 15%,transparent);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--ink) 30%,transparent),0 10px 20px -4px rgba(0,0,0,.22)}
+
+/* 3 · patterns */
+.st-rows{position:relative;display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px;margin-top:18px}
+.st-mr{position:relative;display:grid;grid-template-columns:repeat(28,1fr);gap:3px;height:28px;align-items:end}
+.st-mr i{display:block;border-radius:1.5px;background:var(--muted);transform:scaleY(0);transform-origin:bottom}
 .st-mr i.p{background:var(--period)}
-.st-mr i.none{background:var(--line)}
-.active .st-mr i{animation:st-grow .45s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d)}
-@keyframes st-grow{to{transform:scaleY(1)}}
+.st-mr i.none{background:color-mix(in srgb,var(--ink) 14%,transparent)}
+.active .st-mr i{animation:st-pop .75s var(--e-spring) var(--d) forwards}
+.active .st-mr i.b{animation:st-pop .75s var(--e-spring) var(--d) forwards,st-hi .5s ease 2.75s forwards}
+@keyframes st-hi{to{background:var(--ink)}}
+.st-best{position:absolute;inset:-12px 0;display:grid;grid-template-columns:repeat(28,1fr);gap:3px;pointer-events:none}
+.st-best i{grid-column:11/16;grid-row:1;margin:0 -5px;border-radius:12px;background:color-mix(in srgb,var(--ink) 8%,transparent);opacity:0;transform:scaleY(.6)}
+.st-best span{grid-column:8/19;grid-row:1;align-self:start;text-align:center;font-size:12px;font-weight:600;white-space:nowrap;opacity:0}
+.active .st-best i{animation:st-pop .7s var(--e-spring) 2.45s forwards}
+.active .st-best span{animation:st-label .6s var(--e-out) 2.65s forwards}
+@keyframes st-label{from{opacity:0;transform:translateY(-60%)}to{opacity:1;transform:translateY(-150%)}}
+
+/* 4 · privacy */
 .st-vault{position:relative;width:200px;height:200px}
-.st-device{position:absolute;left:62px;top:28px;width:76px;height:136px;border:2px solid var(--ink);border-radius:16px}
-.st-dot{position:absolute;width:9px;height:9px;border-radius:50%;left:var(--x);top:var(--y);opacity:0}
-.active .st-dot{animation:st-fly 1.1s cubic-bezier(.5,0,.2,1) forwards;animation-delay:var(--d)}
-@keyframes st-fly{0%{opacity:0;transform:none}15%{opacity:1}100%{opacity:1;left:96px;top:104px;transform:scale(.6)}}
-.st-lock{position:absolute;left:79px;top:70px;width:42px;height:56px;opacity:0;overflow:visible}
-.active .st-lock{animation:st-in .3s 2.1s forwards}
-.st-shackle{transform:translateY(-7px)}
-.active .st-shackle{animation:st-shut .35s 2.5s cubic-bezier(.3,1.6,.5,1) forwards}
+.active .st-vault{animation:st-float 3.5s 3.5s ease-in-out infinite alternate}
+.st-device{position:absolute;left:60px;top:30px;width:80px;height:140px;overflow:visible}
+.st-frame,.st-notch{stroke-dasharray:1;stroke-dashoffset:1}
+.active .st-frame{animation:st-dash 1.1s var(--e-out) .1s forwards}
+.active .st-notch{animation:st-dash .4s var(--e-out) .75s forwards}
+@keyframes st-dash{to{stroke-dashoffset:0}}
+.active .st-device{animation:st-gulp .55s var(--e-spring) 1.95s}
+@keyframes st-gulp{40%{transform:scale(1.07)}}
+/* Each dot arcs in: x and y run on different easings, on nested elements. */
+.st-dot{position:absolute;left:95px;top:105px;width:10px;height:10px}
+.st-dot b{display:block;width:100%;height:100%;border-radius:50%;background:var(--c);opacity:0}
+.active .st-dot{animation:st-dx 1s cubic-bezier(.25,.6,.4,1) var(--d) both}
+.active .st-dot b{animation:st-dy 1s cubic-bezier(.6,0,.85,.6) var(--d) both}
+@keyframes st-dx{from{transform:translateX(var(--dx))}to{transform:none}}
+@keyframes st-dy{0%{opacity:0;transform:translateY(var(--dy))}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateY(0) scale(.35)}}
+.st-pulse{position:absolute;left:60px;top:60px;width:80px;height:80px;border-radius:50%;border:2px solid var(--follicular);opacity:0}
+.active .st-pulse{animation:st-ring 1.1s ease-out 2.8s}
+@keyframes st-ring{0%{opacity:.85;transform:scale(.5)}100%{opacity:0;transform:scale(1.9)}}
+.st-lock{position:absolute;left:79px;top:72px;width:42px;height:56px;overflow:visible;opacity:0}
+.active .st-lock{animation:st-drop .75s var(--e-spring) 2.05s forwards}
+@keyframes st-drop{from{opacity:0;transform:translateY(-36px) scale(.8)}to{opacity:1;transform:none}}
+.st-shackle{transform:translateY(-8px)}
+.active .st-shackle{animation:st-shut .4s cubic-bezier(.3,1.8,.5,1) 2.6s forwards}
 @keyframes st-shut{to{transform:none}}
-@keyframes st-in{to{opacity:1}}
-/* Reduce Motion: jump every animation to its end state. */
+
+/* Reduce Motion: no drifting, every animation jumps to its end state. */
 @media (prefers-reduced-motion:reduce){
-  .story *,.story *::after{animation-duration:.01s!important;animation-delay:0s!important;transition:none!important}
+  .st-glow{animation:none}
+  .story *,.story *::after{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition:none!important}
 }
 .logo{width:64px;height:64px;display:block;margin-bottom:22px}
 .brand{font-family:var(--serif);font-size:56px;font-weight:500;letter-spacing:-.02em}
@@ -1302,77 +1379,159 @@ const vTabbar = () => `<nav class="tabbar">${TABS.map(([k, n, ic]) => `<button c
 /* ---------- welcome story ---------- */
 // Four auto-playing scenes on the welcome screen: where you are, the check-in, your patterns, privacy.
 const STORY_MS = 6000, STORY_L = 28, STORY_P = 5;
+const STORY_GLOW = [null, 'ovulatory', 'luteal', 'follicular']; // scene 1 follows the dot's phase
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const story = { i: 0, t0: 0, timer: null };
+const story = { i: 0, t0: 0, timer: null, leave: null, phase: null };
+// Wraps each word in its own mask, for the word-by-word reveal.
+const storyWords = (text, d0) => text.split(' ').map((w, i) => `<span class="st-w"><span style="--d:${(d0 + i * 0.045).toFixed(3)}s">${w}</span></span>`).join(' ');
+
 function vStory() {
   const cx = 150, cy = 150, r = 128, step = (2 * Math.PI) / STORY_L, top = -Math.PI / 2, gap = 9 / r;
-  const ring = `<svg class="st-ring" viewBox="0 0 300 300" aria-hidden="true">${phaseSpans(STORY_L, STORY_P).map((sp, i) =>
-    `<path class="st-arc" pathLength="1" style="animation-delay:${i * 0.12}s" d="${arc(cx, cy, r, top + (sp.a - 1) * step + gap, top + sp.b * step - gap)}" stroke="var(--${sp.k})" stroke-width="12" fill="none" stroke-linecap="round"/>`).join('')}
-    <circle class="st-mk" r="11" cx="${cx + r * Math.cos(top + 16.5 * step)}" cy="${cy + r * Math.sin(top + 16.5 * step)}" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/></svg>`;
-  const faces = MOODS.map((n, i) => `<span class="${i === 3 ? 'pick' : ''}">${face(i + 1, '')}${n}</span>`).join('') + '<i class="st-tap"></i>';
-  const chips = [['Calm', 1.8], ['Content', 0], ['Focused', 2.15], ['Social', 0], ['Energetic', 2.5], ['Tired', 0]]
-    .map(([x, o], i) => `<span class="st-chip st-rise ${o ? 'on' : ''}" style="--d:${1.5 + i * 0.05}s;--o:${o}s">${x}</span>`).join('');
-  // Seeded, so the sample mood bars look the same every time.
+  const segs = phaseSpans(STORY_L, STORY_P).map((sp, i) => `<g class="st-seg" data-k="${sp.k}"><path class="st-arc" pathLength="1" style="--d:${(0.1 + i * 0.11).toFixed(2)}s"
+    d="${arc(cx, cy, r, top + (sp.a - 1) * step + gap, top + sp.b * step - gap)}" stroke="var(--${sp.k})" stroke-width="12" fill="none" stroke-linecap="round"/></g>`).join('');
+  const ring = `<div class="st-ringbox"><svg class="st-ring" viewBox="0 0 300 300" aria-hidden="true">${segs}
+      <circle class="st-halo" r="11" fill="none" stroke-width="2"/><circle class="st-mk" r="11" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/></svg>
+    <div class="st-center"><div class="st-roll st-ph"></div><div class="st-roll st-th"></div></div></div>`;
+
+  const sparkColors = ['menstrual', 'ovulatory', 'follicular', 'luteal', 'premenstrual', 'ovulatory'];
+  const spark = `<span class="st-spark">${sparkColors.map((k, i) => `<i style="--a:${i * 60}deg;background:var(--${k})"></i>`).join('')}</span>`;
+  const faces = MOODS.map((n, i) => `<span class="${i === 3 ? 'pick' : ''}" style="--d:${(0.45 + i * 0.06).toFixed(2)}s"><b class="st-face">${face(i + 1, '')}${i === 3 ? spark : ''}</b>${n}</span>`).join('');
+  // [label, moment the fingertip presses it]. The finger path in storyFinger() uses the same moments.
+  const chips = [['Calm', 2.02], ['Content', 0], ['Focused', 2.48], ['Social', 0], ['Energetic', 2.93], ['Tired', 0]]
+    .map(([x, o], i) => `<span class="st-chip ${o ? 'on' : ''}" data-c="${x}" style="--d:${(1.5 + i * 0.05).toFixed(2)}s;--o:${o}s">${x}</span>`).join('');
+  const card = `<div class="st-card"><p class="eyebrow" style="justify-content:center">Morning check-in</p><h3 class="st-q">How are you feeling?</h3>
+    <div class="st-faces">${faces}</div><div class="st-chips">${chips}</div></div><span class="st-finger"></span>`;
+
+  // Seeded, so the sample mood bars look the same every time. Days 11–15 are the "best days".
   let seed = 7;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const base = { menstrual: 2.9, follicular: 3.9, ovulatory: 4.3, luteal: 3.6, premenstrual: 2.5 };
   const rows = [0, 1, 2, 3].map(row => `<div class="st-mr">${Array.from({ length: STORY_L }, (_, i) => {
-    const d = i + 1, miss = rnd() < 0.1, m = Math.min(5, Math.max(1, Math.round(base[phaseOf(d, STORY_L, STORY_P)] + (rnd() - 0.5) * 1.6)));
-    return `<i class="${d <= STORY_P ? 'p' : ''} ${miss ? 'none' : ''}" style="height:${miss ? '2px' : m * 20 + '%'};--d:${(row * 0.22 + i * 0.018).toFixed(3)}s"></i>`;
+    const d = i + 1, best = d >= 11 && d <= 15, miss = !best && rnd() < 0.1;
+    let m = Math.min(5, Math.max(1, Math.round(base[phaseOf(d, STORY_L, STORY_P)] + (rnd() - 0.5) * 1.6)));
+    if (best) m = Math.max(m, 4);
+    return `<i class="${d <= STORY_P ? 'p' : ''} ${miss ? 'none' : ''} ${best ? 'b' : ''}" style="height:${miss ? '2px' : m * 20 + '%'};--d:${(0.2 + row * 0.12 + i * 0.022).toFixed(3)}s"></i>`;
   }).join('')}</div>`).join('');
+  const patterns = `<div class="st-rows"><div class="st-best"><i></i><span>Your best days</span></div>${rows}</div>`;
+
   const dotKeys = ['menstrual', 'follicular', 'ovulatory', 'luteal', 'premenstrual'];
   const dots = Array.from({ length: 10 }, (_, i) => {
-    const a = (i / 10) * 2 * Math.PI;
-    return `<i class="st-dot" style="background:var(--${dotKeys[i % 5]});--x:${(96 + Math.cos(a) * 92).toFixed(0)}px;--y:${(92 + Math.sin(a) * 88).toFixed(0)}px;--d:${(0.2 + i * 0.12).toFixed(2)}s"></i>`;
+    const a = (i / 10) * 2 * Math.PI + 0.3;
+    return `<i class="st-dot" style="--c:var(--${dotKeys[i % 5]});--dx:${(Math.cos(a) * 100).toFixed(0)}px;--dy:${(Math.sin(a) * 92 - 12).toFixed(0)}px;--d:${(0.35 + i * 0.1).toFixed(2)}s"><b></b></i>`;
   }).join('');
+  const vault = `<div class="st-vault"><svg class="st-device" viewBox="0 0 80 140" aria-hidden="true">
+      <rect class="st-frame" x="1" y="1" width="78" height="138" rx="17" pathLength="1" fill="none" stroke="var(--ink)" stroke-width="2"/>
+      <path class="st-notch" d="M32 12h16" pathLength="1" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/></svg>
+    ${dots}<span class="st-pulse"></span>
+    <svg class="st-lock" viewBox="0 0 42 56" aria-hidden="true"><g class="st-shackle"><path d="M11 26V16a10 10 0 0 1 20 0v10" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/></g>
+      <rect x="5" y="25" width="32" height="26" rx="7" fill="var(--ink)"/><circle cx="21" cy="37" r="3" fill="var(--bg)"/></svg></div>`;
+
   const scene = (vis, cap) => `<section class="st-scene"><div class="st-vis">${vis}</div><div class="st-cap">${cap}</div></section>`;
   return `<div class="story">
     <div class="st-bars" aria-hidden="true">${'<i><b></b></i>'.repeat(4)}</div>
     <div class="st-scenes" data-a="storyNext">
-      ${scene(ring, `<div class="brand st-rise">phase.</div><h1 class="st-rise" style="--d:.15s">Know where you are in your cycle.</h1>`)}
-      ${scene(`<div class="st-check"><p class="eyebrow st-rise">Morning check-in</p><div class="st-faces st-rise" style="--d:.1s">${faces}</div><div class="st-chips">${chips}</div></div>`,
-        `<h1 class="st-rise" style="--d:.15s">A 10-second check-in each day.</h1>`)}
-      ${scene(`<div class="st-rows">${rows}</div>`, `<h1 class="st-rise" style="--d:.15s">See your own patterns, cycle after cycle.</h1>`)}
-      ${scene(`<div class="st-vault">${dots}<div class="st-device"></div><svg class="st-lock" viewBox="0 0 42 56" aria-hidden="true"><g class="st-shackle"><path d="M11 26V16a10 10 0 0 1 20 0v10" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/></g><rect x="5" y="25" width="32" height="26" rx="7" fill="var(--ink)"/><circle cx="21" cy="37" r="3" fill="var(--bg)"/></svg></div>`,
-        `<h1 class="st-rise" style="--d:.15s">Stays on your phone. No account, no cloud.</h1>`)}
+      ${scene(ring, `<div class="brand">${storyWords('phase.', 0.9)}</div><h1>${storyWords('Know where you are in your cycle.', 1.05)}</h1>`)}
+      ${scene(card, `<h1>${storyWords('A 10-second check-in each day.', 0.25)}</h1>`)}
+      ${scene(patterns, `<h1>${storyWords('See your own patterns, cycle after cycle.', 0.25)}</h1>`)}
+      ${scene(vault, `<h1>${storyWords('Stays on your phone. No account, no cloud.', 0.25)}</h1>`)}
     </div>
   </div>`;
 }
+
 // Starts the story once its markup is on screen. Renders that keep the markup do not restart it.
 function storyMount() {
   const el = document.querySelector('.story');
   if (!el || el.dataset.on) return;
   el.dataset.on = '1';
-  storyShow(0);
+  story.i = 0;
+  storyShow(0, true);
   requestAnimationFrame(storyTick);
 }
-function storyShow(n) {
+function storyShow(n, first) {
   clearTimeout(story.timer);
   const el = document.querySelector('.story');
   if (!el) return;
   const scenes = [...el.querySelectorAll('.st-scene')], bars = [...el.querySelectorAll('.st-bars i')];
-  story.i = n % scenes.length; story.t0 = performance.now();
-  // Restart the CSS animations: drop the class, force a reflow, add it back.
-  scenes.forEach((sc, j) => { sc.classList.remove('active'); sc.setAttribute('aria-hidden', j !== story.i); });
+  const prev = first ? null : scenes[story.i];
+  story.i = n % scenes.length; story.t0 = performance.now(); story.phase = null;
+  const cur = scenes[story.i];
+  // The old scene keeps its end state while it blurs away, then resets out of sight.
+  clearTimeout(story.leave);
+  scenes.forEach(sc => { if (sc !== prev) sc.classList.remove('active', 'leave'); sc.setAttribute('aria-hidden', sc !== cur); });
+  if (prev && prev !== cur) { prev.classList.add('leave'); story.leave = setTimeout(() => prev.classList.remove('active', 'leave'), 600); }
   bars.forEach((b, j) => { b.className = j < story.i ? 'done' : ''; });
-  void el.offsetWidth;
-  scenes[story.i].classList.add('active');
+  void el.offsetWidth; // restart the CSS animations
+  cur.classList.add('active');
   bars[story.i].className = 'now';
+  if (story.i === 0) storyRingReset(cur);
+  if (story.i === 1) storyFinger(cur);
+  if (STORY_GLOW[story.i]) el.closest('.welcome').style.setProperty('--glow', `var(--${STORY_GLOW[story.i]})`);
   // With Reduce Motion, scenes only change when tapped.
   if (!reduceMotion.matches) story.timer = setTimeout(() => storyShow(story.i + 1), STORY_MS);
 }
-// Moves the dot around the ring in the first scene.
+
+function storyRingReset(sc) {
+  sc.querySelectorAll('.st-roll').forEach(r => (r.innerHTML = ''));
+  sc.querySelector('.st-ringbox').classList.remove('lit');
+  sc.querySelectorAll('.st-seg').forEach(g => g.classList.remove('on'));
+  sc.querySelectorAll('.st-mk,.st-halo').forEach(c => c.classList.remove('show'));
+  if (reduceMotion.matches) storyRingAt(sc, 17);
+}
+// Puts the dot on a (fractional) cycle day, and highlights that day's phase.
+function storyRingAt(sc, day) {
+  const a = -Math.PI / 2 + (day - 0.5) * ((2 * Math.PI) / STORY_L), x = 150 + 128 * Math.cos(a), y = 150 + 128 * Math.sin(a);
+  const mk = sc.querySelector('.st-mk'), halo = sc.querySelector('.st-halo');
+  mk.setAttribute('cx', x); mk.setAttribute('cy', y); halo.setAttribute('cx', x); halo.setAttribute('cy', y);
+  mk.classList.add('show'); halo.classList.add('show');
+  const k = phaseOf(Math.floor(day), STORY_L, STORY_P);
+  if (k === story.phase) return;
+  story.phase = k;
+  halo.style.stroke = `var(--${k})`;
+  sc.querySelector('.st-ringbox').classList.add('lit');
+  sc.querySelectorAll('.st-seg').forEach(g => g.classList.toggle('on', g.dataset.k === k));
+  const roll = (q, text) => {
+    const box = sc.querySelector(q), old = box.querySelector('span:not(.out)');
+    if (old) { old.classList.add('out'); setTimeout(() => old.remove(), 450); }
+    box.insertAdjacentHTML('beforeend', `<span>${text}</span>`);
+  };
+  roll('.st-ph', PHASES[k].name);
+  roll('.st-th', PHASES[k].theme);
+  document.querySelector('.welcome')?.style.setProperty('--glow', `var(--${k})`);
+}
+// Scene 1: once the arcs have drawn, the dot laps the cycle with a gentle ease in and out.
 function storyTick(now) {
-  const mk = document.querySelector('.story .st-mk');
-  if (!mk) return;
+  const el = document.querySelector('.story');
+  if (!el) return;
   if (story.i === 0 && !reduceMotion.matches) {
-    const t = now - story.t0 - 700;
-    if (t > 0) {
-      const a = -Math.PI / 2 + ((t / (STORY_MS - 1000)) * STORY_L % STORY_L) * ((2 * Math.PI) / STORY_L);
-      mk.setAttribute('cx', 150 + 128 * Math.cos(a)); mk.setAttribute('cy', 150 + 128 * Math.sin(a));
+    const t = now - story.t0;
+    if (t > 1050) {
+      const p = Math.min(1, Math.max(0, (t - 1350) / 4100)), e = (1 - Math.cos(Math.PI * p)) / 2;
+      storyRingAt(el.querySelectorAll('.st-scene')[0], 1 + e * (STORY_L - 0.01));
     }
   }
   requestAnimationFrame(storyTick);
+}
+
+// Scene 2: a fingertip taps "Good", then three feelings. Its press moments match the CSS delays.
+function storyFinger(sc) {
+  const f = sc.querySelector('.st-finger');
+  f.getAnimations().forEach(an => an.cancel());
+  if (reduceMotion.matches) return;
+  // Layout positions ignore transforms, so they are right even while the card animates in.
+  const pos = q => {
+    let e = sc.querySelector(q), x = e.offsetWidth / 2, y = e.offsetHeight / 2;
+    while (e && e !== sc) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+    return [x, y];
+  };
+  const W = sc.offsetWidth, H = sc.offsetHeight, ease = 'cubic-bezier(.45,0,.2,1)';
+  const good = pos('.pick .st-face'), calm = pos('[data-c=Calm]'), focused = pos('[data-c=Focused]'), energetic = pos('[data-c=Energetic]');
+  const off = [W + 30, H * 0.78], out = [W + 30, H * 0.95];
+  const k = (ms, [x, y], s = 1, o = 1) => ({ offset: ms / 3900, transform: `translate(${x - 19}px,${y - 19}px) scale(${s})`, opacity: o, easing: ease });
+  f.animate([
+    k(0, off, 1, 0), k(380, off, 1, 0), k(1000, good), k(1130, good, 0.78), k(1290, good),
+    k(1890, calm), k(2010, calm, 0.78), k(2150, calm), k(2370, focused), k(2470, focused, 0.78), k(2600, focused),
+    k(2820, energetic), k(2920, energetic, 0.78), k(3060, energetic), k(3700, out, 1, 0), k(3900, out, 1, 0),
+  ], { duration: 3900, fill: 'both' });
 }
 
 /* ---------- onboarding ---------- */
@@ -1380,7 +1539,7 @@ function vOnboard() {
   const o = ui.ob, s = o.step;
   const foot = (next, label = 'Continue') => `<div class="flow-foot">${s ? `<button class="btn ghost" data-a="ob" data-v="-1" aria-label="Back">${I.back}</button>` : ''}<button class="btn block" data-a="${next}" data-v="1">${label}</button></div>`;
   const prog = `<div class="flow-top"><div class="progress">${[1, 2, 3].map(i => `<i class="${s >= i ? 'on' : ''}"></i>`).join('')}</div></div>`;
-  if (s === 0) return `<div class="flow page">${vStory()}
+  if (s === 0) return `<div class="flow page welcome"><div class="st-glow"></div>${vStory()}
     <div class="flow-foot" style="flex-direction:column;align-items:center"><button class="btn block" data-a="ob" data-v="1">Begin</button>
     <button class="link" data-a="sample">Explore with sample data</button>
     ${canInstall() && home.ios ? `<p class="fine install-hint">Using phase on your phone? Add it to your Home Screen first. Data you enter in Safari stays in Safari. <button class="link" data-a="install">Show me how</button></p>` : ''}</div></div>`;
