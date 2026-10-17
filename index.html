@@ -250,7 +250,8 @@ textarea::placeholder{color:var(--muted)}
 .stepper .n{font-family:var(--serif);font-size:72px;font-weight:500;min-width:110px;text-align:center;line-height:1}
 .stepper-unit{text-align:center;color:var(--muted);margin-top:6px}
 /* welcome story */
-.welcome{position:relative;overflow:hidden}
+/* .flow.page sets position:static, so match its specificity or the glow escapes and the page scrolls sideways. */
+.flow.page.welcome{position:relative;overflow:hidden}
 .welcome>.story,.welcome>.flow-foot{position:relative;z-index:1}
 /* Soft phase-coloured light behind the scenes. A mask keeps it a blur-free radial glow. */
 .st-glow{position:absolute;left:50%;top:38%;width:min(560px,140vw);aspect-ratio:1;margin:calc(min(560px,140vw)/-2) 0 0 calc(min(560px,140vw)/-2);
