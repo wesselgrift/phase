@@ -249,6 +249,64 @@ textarea::placeholder{color:var(--muted)}
 .stepper button{width:56px;height:56px;border-radius:50%;background:var(--card);font-size:26px;font-weight:300}
 .stepper .n{font-family:var(--serif);font-size:72px;font-weight:500;min-width:110px;text-align:center;line-height:1}
 .stepper-unit{text-align:center;color:var(--muted);margin-top:6px}
+/* welcome story */
+.story{flex:1;display:flex;flex-direction:column;width:100%;max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 20px 0;min-height:0}
+.st-bars{display:flex;gap:5px}
+.st-bars i{flex:1;height:3px;border-radius:2px;background:var(--line);overflow:hidden;position:relative}
+.st-bars b{position:absolute;inset:0;width:0;background:var(--ink)}
+.st-bars i.done b{width:100%}
+.st-bars i.now b{animation:st-fill 6s linear forwards}
+@keyframes st-fill{to{width:100%}}
+.st-scenes{flex:1;position:relative;cursor:pointer;min-height:420px}
+.st-scene{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .45s;pointer-events:none}
+.st-scene.active{opacity:1}
+.st-vis{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.st-cap{padding-bottom:8px}
+.st-cap h1{font-family:var(--serif);font-weight:500;font-size:30px;line-height:1.15;letter-spacing:-.01em;margin-top:6px}
+.st-cap .brand{font-size:40px}
+.st-rise{opacity:0;transform:translateY(12px)}
+.active .st-rise{animation:rise .6s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d,0s)}
+.st-ring{width:min(250px,66vw);height:auto;overflow:visible}
+.st-arc{stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
+.active .st-arc{animation:st-draw .9s cubic-bezier(.3,.7,.2,1) forwards}
+@keyframes st-draw{0%{opacity:1;stroke-dashoffset:1}100%{opacity:1;stroke-dashoffset:0}}
+.st-check{display:flex;flex-direction:column;align-items:center}
+.st-faces{display:flex;gap:6px;margin-top:16px;position:relative}
+.st-faces span{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--muted);width:50px}
+.st-faces svg{width:44px;height:44px;color:var(--muted)}
+.active .st-faces .pick{animation:st-pickt .01s 1.1s forwards}
+.active .st-faces .pick svg{animation:st-pick .5s 1.1s forwards}
+@keyframes st-pick{to{transform:scale(1.2);color:var(--ink)}}
+@keyframes st-pickt{to{color:var(--ink);font-weight:600}}
+.st-tap{position:absolute;left:168px;top:0;width:50px;height:50px;border-radius:50%;background:var(--ink);opacity:0;transform:scale(.4)}
+.active .st-tap{animation:st-tapk .7s .8s ease-out}
+@keyframes st-tapk{0%{opacity:.18;transform:scale(.4)}100%{opacity:0;transform:scale(1.6)}}
+.st-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:24px;max-width:260px}
+.st-chip{padding:8px 13px;border-radius:17px;background:var(--card);font-size:13.5px;font-weight:500}
+.active .st-chip.on{animation:rise .6s cubic-bezier(.2,.8,.2,1) forwards,st-chipon .25s forwards;animation-delay:var(--d),var(--o)}
+@keyframes st-chipon{to{background:var(--ink);color:var(--bg)}}
+.st-rows{display:flex;flex-direction:column;gap:14px;width:100%;max-width:340px}
+.st-mr{display:grid;grid-template-columns:repeat(28,1fr);gap:3px;height:26px;align-items:end}
+.st-mr i{display:block;border-radius:1px;background:var(--muted);transform:scaleY(0);transform-origin:bottom}
+.st-mr i.p{background:var(--period)}
+.st-mr i.none{background:var(--line)}
+.active .st-mr i{animation:st-grow .45s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d)}
+@keyframes st-grow{to{transform:scaleY(1)}}
+.st-vault{position:relative;width:200px;height:200px}
+.st-device{position:absolute;left:62px;top:28px;width:76px;height:136px;border:2px solid var(--ink);border-radius:16px}
+.st-dot{position:absolute;width:9px;height:9px;border-radius:50%;left:var(--x);top:var(--y);opacity:0}
+.active .st-dot{animation:st-fly 1.1s cubic-bezier(.5,0,.2,1) forwards;animation-delay:var(--d)}
+@keyframes st-fly{0%{opacity:0;transform:none}15%{opacity:1}100%{opacity:1;left:96px;top:104px;transform:scale(.6)}}
+.st-lock{position:absolute;left:79px;top:70px;width:42px;height:56px;opacity:0;overflow:visible}
+.active .st-lock{animation:st-in .3s 2.1s forwards}
+.st-shackle{transform:translateY(-7px)}
+.active .st-shackle{animation:st-shut .35s 2.5s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes st-shut{to{transform:none}}
+@keyframes st-in{to{opacity:1}}
+/* Reduce Motion: jump every animation to its end state. */
+@media (prefers-reduced-motion:reduce){
+  .story *,.story *::after{animation-duration:.01s!important;animation-delay:0s!important;transition:none!important}
+}
 .logo{width:64px;height:64px;display:block;margin-bottom:22px}
 .brand{font-family:var(--serif);font-size:56px;font-weight:500;letter-spacing:-.02em}
 
@@ -500,7 +558,7 @@ const I = {
   phone: svg('<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>'),
   rise: svg('<path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 7v3M5.6 10.6l1.8 1.8M18.4 10.6l-1.8 1.8"/>'),
 };
-// The app icon's ring, in theme colours, for the welcome and lock screens.
+// The app icon's ring, in theme colours, for the lock screen.
 const LOGO = `<svg class="logo" viewBox="84 84 344 344" aria-hidden="true">${[
   ['menstrual', 'M272.6 98.2A158.7 158.7 0 0 1 391.0 172.5'], ['follicular', 'M405.4 202.5A158.7 158.7 0 0 1 339.5 391.0'],
   ['ovulatory', 'M309.5 405.4A158.7 158.7 0 0 1 237.1 413.6'], ['luteal', 'M204.7 406.2A158.7 158.7 0 0 1 98.2 272.6'],
@@ -1241,16 +1299,88 @@ function csvFile() {
 const TABS = [['today', 'Today', I.today], ['calendar', 'Calendar', I.cal], ['journey', 'Journey', I.journey], ['learn', 'Learn', I.learn]];
 const vTabbar = () => `<nav class="tabbar">${TABS.map(([k, n, ic]) => `<button class="tab ${ui.tab === k ? 'on' : ''}" data-a="tab" data-v="${k}">${ic}${n}</button>`).join('')}</nav>`;
 
+/* ---------- welcome story ---------- */
+// Four auto-playing scenes on the welcome screen: where you are, the check-in, your patterns, privacy.
+const STORY_MS = 6000, STORY_L = 28, STORY_P = 5;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const story = { i: 0, t0: 0, timer: null };
+function vStory() {
+  const cx = 150, cy = 150, r = 128, step = (2 * Math.PI) / STORY_L, top = -Math.PI / 2, gap = 9 / r;
+  const ring = `<svg class="st-ring" viewBox="0 0 300 300" aria-hidden="true">${phaseSpans(STORY_L, STORY_P).map((sp, i) =>
+    `<path class="st-arc" pathLength="1" style="animation-delay:${i * 0.12}s" d="${arc(cx, cy, r, top + (sp.a - 1) * step + gap, top + sp.b * step - gap)}" stroke="var(--${sp.k})" stroke-width="12" fill="none" stroke-linecap="round"/>`).join('')}
+    <circle class="st-mk" r="11" cx="${cx + r * Math.cos(top + 16.5 * step)}" cy="${cy + r * Math.sin(top + 16.5 * step)}" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/></svg>`;
+  const faces = MOODS.map((n, i) => `<span class="${i === 3 ? 'pick' : ''}">${face(i + 1, '')}${n}</span>`).join('') + '<i class="st-tap"></i>';
+  const chips = [['Calm', 1.8], ['Content', 0], ['Focused', 2.15], ['Social', 0], ['Energetic', 2.5], ['Tired', 0]]
+    .map(([x, o], i) => `<span class="st-chip st-rise ${o ? 'on' : ''}" style="--d:${1.5 + i * 0.05}s;--o:${o}s">${x}</span>`).join('');
+  // Seeded, so the sample mood bars look the same every time.
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const base = { menstrual: 2.9, follicular: 3.9, ovulatory: 4.3, luteal: 3.6, premenstrual: 2.5 };
+  const rows = [0, 1, 2, 3].map(row => `<div class="st-mr">${Array.from({ length: STORY_L }, (_, i) => {
+    const d = i + 1, miss = rnd() < 0.1, m = Math.min(5, Math.max(1, Math.round(base[phaseOf(d, STORY_L, STORY_P)] + (rnd() - 0.5) * 1.6)));
+    return `<i class="${d <= STORY_P ? 'p' : ''} ${miss ? 'none' : ''}" style="height:${miss ? '2px' : m * 20 + '%'};--d:${(row * 0.22 + i * 0.018).toFixed(3)}s"></i>`;
+  }).join('')}</div>`).join('');
+  const dotKeys = ['menstrual', 'follicular', 'ovulatory', 'luteal', 'premenstrual'];
+  const dots = Array.from({ length: 10 }, (_, i) => {
+    const a = (i / 10) * 2 * Math.PI;
+    return `<i class="st-dot" style="background:var(--${dotKeys[i % 5]});--x:${(96 + Math.cos(a) * 92).toFixed(0)}px;--y:${(92 + Math.sin(a) * 88).toFixed(0)}px;--d:${(0.2 + i * 0.12).toFixed(2)}s"></i>`;
+  }).join('');
+  const scene = (vis, cap) => `<section class="st-scene"><div class="st-vis">${vis}</div><div class="st-cap">${cap}</div></section>`;
+  return `<div class="story">
+    <div class="st-bars" aria-hidden="true">${'<i><b></b></i>'.repeat(4)}</div>
+    <div class="st-scenes" data-a="storyNext">
+      ${scene(ring, `<div class="brand st-rise">phase.</div><h1 class="st-rise" style="--d:.15s">Know where you are in your cycle.</h1>`)}
+      ${scene(`<div class="st-check"><p class="eyebrow st-rise">Morning check-in</p><div class="st-faces st-rise" style="--d:.1s">${faces}</div><div class="st-chips">${chips}</div></div>`,
+        `<h1 class="st-rise" style="--d:.15s">A 10-second check-in each day.</h1>`)}
+      ${scene(`<div class="st-rows">${rows}</div>`, `<h1 class="st-rise" style="--d:.15s">See your own patterns, cycle after cycle.</h1>`)}
+      ${scene(`<div class="st-vault">${dots}<div class="st-device"></div><svg class="st-lock" viewBox="0 0 42 56" aria-hidden="true"><g class="st-shackle"><path d="M11 26V16a10 10 0 0 1 20 0v10" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/></g><rect x="5" y="25" width="32" height="26" rx="7" fill="var(--ink)"/><circle cx="21" cy="37" r="3" fill="var(--bg)"/></svg></div>`,
+        `<h1 class="st-rise" style="--d:.15s">Stays on your phone. No account, no cloud.</h1>`)}
+    </div>
+  </div>`;
+}
+// Starts the story once its markup is on screen. Renders that keep the markup do not restart it.
+function storyMount() {
+  const el = document.querySelector('.story');
+  if (!el || el.dataset.on) return;
+  el.dataset.on = '1';
+  storyShow(0);
+  requestAnimationFrame(storyTick);
+}
+function storyShow(n) {
+  clearTimeout(story.timer);
+  const el = document.querySelector('.story');
+  if (!el) return;
+  const scenes = [...el.querySelectorAll('.st-scene')], bars = [...el.querySelectorAll('.st-bars i')];
+  story.i = n % scenes.length; story.t0 = performance.now();
+  // Restart the CSS animations: drop the class, force a reflow, add it back.
+  scenes.forEach((sc, j) => { sc.classList.remove('active'); sc.setAttribute('aria-hidden', j !== story.i); });
+  bars.forEach((b, j) => { b.className = j < story.i ? 'done' : ''; });
+  void el.offsetWidth;
+  scenes[story.i].classList.add('active');
+  bars[story.i].className = 'now';
+  // With Reduce Motion, scenes only change when tapped.
+  if (!reduceMotion.matches) story.timer = setTimeout(() => storyShow(story.i + 1), STORY_MS);
+}
+// Moves the dot around the ring in the first scene.
+function storyTick(now) {
+  const mk = document.querySelector('.story .st-mk');
+  if (!mk) return;
+  if (story.i === 0 && !reduceMotion.matches) {
+    const t = now - story.t0 - 700;
+    if (t > 0) {
+      const a = -Math.PI / 2 + ((t / (STORY_MS - 1000)) * STORY_L % STORY_L) * ((2 * Math.PI) / STORY_L);
+      mk.setAttribute('cx', 150 + 128 * Math.cos(a)); mk.setAttribute('cy', 150 + 128 * Math.sin(a));
+    }
+  }
+  requestAnimationFrame(storyTick);
+}
+
 /* ---------- onboarding ---------- */
 function vOnboard() {
   const o = ui.ob, s = o.step;
   const foot = (next, label = 'Continue') => `<div class="flow-foot">${s ? `<button class="btn ghost" data-a="ob" data-v="-1" aria-label="Back">${I.back}</button>` : ''}<button class="btn block" data-a="${next}" data-v="1">${label}</button></div>`;
   const prog = `<div class="flow-top"><div class="progress">${[1, 2, 3].map(i => `<i class="${s >= i ? 'on' : ''}"></i>`).join('')}</div></div>`;
-  if (s === 0) return `<div class="flow page"><div class="flow-body" style="justify-content:center"><div class="step" style="justify-content:center;flex:0">
-      ${LOGO}<div class="brand">phase.</div>
-      <h1 style="margin-top:8px">Know your rhythm.</h1>
-      <p class="sub" style="font-size:18px">A calm daily check-in that shows how your hormones shape your body and mind, cycle after cycle.</p>
-    </div></div>
+  if (s === 0) return `<div class="flow page">${vStory()}
     <div class="flow-foot" style="flex-direction:column;align-items:center"><button class="btn block" data-a="ob" data-v="1">Begin</button>
     <button class="link" data-a="sample">Explore with sample data</button>
     ${canInstall() && home.ios ? `<p class="fine install-hint">Using phase on your phone? Add it to your Home Screen first. Data you enter in Safari stays in Safari. <button class="link" data-a="install">Show me how</button></p>` : ''}</div></div>`;
@@ -1427,8 +1557,10 @@ function render() {
   if (!db) { app.innerHTML = vLock(); ov.innerHTML = ui.ask ? vAsk() : ''; document.body.classList.toggle('locked', !!ui.ask); return; }
   const views = { today: vToday, calendar: vCalendar, journey: vJourney, learn: vLearn };
   if (!db.onboarded) {
-    app.innerHTML = vOnboard();
+    // Keep the running welcome story when only an overlay or the theme changes.
+    if (!(ui.ob.step === 0 && app.querySelector('.story'))) app.innerHTML = vOnboard();
     ov.innerHTML = ui.sheet === 'install' ? vInstall() : '';
+    storyMount();
   } else {
     app.innerHTML = ui.report ? vReport() : views[ui.tab]() + vTabbar();
     ov.innerHTML = (ui.flow ? `<div class="flow">${vFlow()}</div>` : ui.sheet === 'settings' ? vSettings() : ui.sheet === 'passcode' ? vPasscode() : ui.sheet === 'install' ? vInstall() : ui.sheet ? vDaySheet(ui.sheet) : '') + (ui.ask ? vAsk() : '');
@@ -1491,6 +1623,7 @@ const A = {
   closeSheet() { ui.sheet = null; render(); },
   month(v) { const [y, m] = ui.month.split('-').map(Number); ui.month = iso(new Date(y, m - 1 + Number(v), 1)).slice(0, 7); render(); },
 
+  storyNext() { storyShow(story.i + 1); },
   ob(v) { ui.ob.step = Math.max(0, ui.ob.step + Number(v)); render(); },
   obN(v) {
     const [k, n] = v.split(':'), o = ui.ob;
