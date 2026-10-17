@@ -169,14 +169,17 @@ details.mild ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:col
 .stat .v{font-family:var(--serif);font-size:34px;font-weight:500;line-height:1.1;margin-top:4px}
 .stat .v small{font-family:var(--sans);font-size:14px;color:var(--muted);font-weight:400;margin-left:4px}
 .stat .s{font-size:12.5px;color:var(--muted)}
-.grid-wrap{display:flex;gap:8px;margin-top:16px}
-.grid-labels{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);padding-top:9px;width:44px;flex:none}
-.grid-labels div{flex:1;display:flex;align-items:center;white-space:nowrap}
-.mgrid{flex:1;display:grid;gap:3px;min-width:0}
-.mgrid .band{height:6px;border-radius:3px}
-.mgrid .c{aspect-ratio:1;border-radius:50%;min-width:0}
-.mgrid .c.empty{box-shadow:inset 0 0 0 1px var(--line)}
-.mgrid .c.p{box-shadow:0 0 0 1.5px var(--period)}
+/* mood bars: one row per cycle, one bar per day, taller is a better mood */
+.mrows{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+.mrow{display:grid;grid-template-columns:44px 1fr;gap:8px;align-items:end}
+.mrow>span{font-size:11px;color:var(--muted);white-space:nowrap;line-height:1}
+.mbars{display:grid;gap:3px;height:22px;min-width:0}
+.mb{position:relative;height:100%;min-width:0}
+.mb::after{content:'';position:absolute;left:0;right:0;bottom:0;height:var(--h);min-height:2px;border-radius:1px;background:var(--muted)}
+.mb.none::after{background:var(--line)}
+.mb.p::after{background:var(--period)}
+.legend .lgb{display:inline-block;width:3px;height:12px;border:0;border-radius:1px;background:var(--muted)}
+.legend .lgb.p{background:var(--period)}
 .axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;padding-left:calc(var(--lw) + 8px)}
 .bars{display:flex;flex-direction:column;gap:12px;margin-top:16px}
 .bar-row{display:grid;grid-template-columns:96px 1fr 36px;align-items:center;gap:10px;font-size:14px}
@@ -1034,32 +1037,25 @@ function vJourney() {
       <button class="btn" style="margin-top:20px" data-a="checkin" data-v="${m.t}">Check in now</button></section></main>`;
   }
 
-  // Mood dot grid: one row per cycle, one column per cycle day.
+  // Mood bars: one row per cycle, one bar per cycle day.
   const rows = cycles.slice(-6);
   const cols = Math.min(40, Math.max(m.L, ...rows.map(c => c.len || m.day)));
-  const op = [0.16, 0.34, 0.55, 0.78, 1];
-  const band = Array.from({ length: cols }, (_, i) => `<div class="band" style="background:var(--${phaseOf(i + 1, m.L, m.P)})"></div>`).join('');
-  const grid = rows.map(c => {
+  const moodRows = rows.map(c => {
     const len = c.len || m.day;
-    return Array.from({ length: cols }, (_, i) => {
-      if (i >= len) return `<div></div>`;
+    const bars = Array.from({ length: cols }, (_, i) => {
+      if (i >= len) return `<span></span>`;
       const d = addDays(c.start, i), log = db.logs[d], per = dayInfo(d)?.loggedPeriod;
-      const title = `${fmtShort(d)} · day ${i + 1}${log ? ' · ' + MOODS[log.mood - 1] : ''}`;
-      return log
-        ? `<button class="c ${per ? 'p' : ''}" style="background:color-mix(in srgb,var(--ink) ${op[log.mood - 1] * 100}%,transparent)" title="${title}" aria-label="${title}" data-a="day" data-v="${d}"></button>`
-        : `<button class="c empty ${per ? 'p' : ''}" title="${title}" aria-label="${title}" data-a="day" data-v="${d}"></button>`;
+      const title = `${fmtShort(d)} · day ${i + 1}${log ? ' · ' + MOODS[log.mood - 1] : ''}${per ? ' · period' : ''}`;
+      return `<button class="mb ${per ? 'p' : ''} ${log ? '' : 'none'}" style="--h:${log ? log.mood * 20 : 0}%" title="${title}" aria-label="${title}" data-a="day" data-v="${d}"></button>`;
     }).join('');
+    return `<div class="mrow"><span>${fmtShort(c.start)}</span><div class="mbars" style="grid-template-columns:repeat(${cols},1fr)">${bars}</div></div>`;
   }).join('');
   const moodGrid = `<section class="card">
     <h2>Mood across your cycle</h2>
-    <p class="lede">Each row is one cycle. Each dot is one day. Darker means a better mood.</p>
-    <div class="grid-wrap">
-      <div class="grid-labels">${rows.map(c => `<div>${fmtShort(c.start)}</div>`).join('')}</div>
-      <div class="mgrid" style="grid-template-columns:repeat(${cols},1fr)">${band}${grid}</div>
-    </div>
+    <p class="lede">Each row is one cycle. Each bar is one day. Taller means a better mood.</p>
+    <div class="mrows">${moodRows}</div>
     <div class="axis" style="--lw:44px"><span>Day 1</span><span>${Math.round(cols / 2)}</span><span>${cols}</span></div>
-    <div class="legend" style="margin-top:12px"><span>Low</span>${op.map(o => `<span class="dot" style="background:color-mix(in srgb,var(--ink) ${o * 100}%,transparent)"></span>`).join('')}<span>High</span>
-      <span style="margin-left:8px"><span class="dot" style="box-shadow:0 0 0 1.5px var(--period)"></span>Period day</span></div>
+    <div class="legend" style="margin-top:12px"><span><i class="lgb"></i>Mood</span><span><i class="lgb p"></i>Period day</span></div>
   </section>`;
 
   const withMood = PHASE_KEYS.filter(k => byPhase[k].moods.length);
