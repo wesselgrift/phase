@@ -249,6 +249,7 @@ textarea::placeholder{color:var(--muted)}
 .stepper button{width:56px;height:56px;border-radius:50%;background:var(--card);font-size:26px;font-weight:300}
 .stepper .n{font-family:var(--serif);font-size:72px;font-weight:500;min-width:110px;text-align:center;line-height:1}
 .stepper-unit{text-align:center;color:var(--muted);margin-top:6px}
+.logo{width:64px;height:64px;display:block;margin-bottom:22px}
 .brand{font-family:var(--serif);font-size:56px;font-weight:500;letter-spacing:-.02em}
 
 .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20}
@@ -499,6 +500,13 @@ const I = {
   phone: svg('<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>'),
   rise: svg('<path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 7v3M5.6 10.6l1.8 1.8M18.4 10.6l-1.8 1.8"/>'),
 };
+// The app icon's ring, in theme colours, for the welcome and lock screens.
+const LOGO = `<svg class="logo" viewBox="84 84 344 344" aria-hidden="true">${[
+  ['menstrual', 'M272.6 98.2A158.7 158.7 0 0 1 391.0 172.5'], ['follicular', 'M405.4 202.5A158.7 158.7 0 0 1 339.5 391.0'],
+  ['ovulatory', 'M309.5 405.4A158.7 158.7 0 0 1 237.1 413.6'], ['luteal', 'M204.7 406.2A158.7 158.7 0 0 1 98.2 272.6'],
+  ['premenstrual', 'M98.2 239.4A158.7 158.7 0 0 1 239.4 98.2'],
+].map(([k, d]) => `<path d="${d}" stroke="var(--${k})" stroke-width="20.6" fill="none" stroke-linecap="round"/>`).join('')}
+  <circle cx="171.6" cy="390.4" r="19.6" fill="var(--bg)" stroke="var(--ink)" stroke-width="6.2"/></svg>`;
 function face(m, cls = 'face') {
   const c = [-7, -3.5, 0, 3.5, 7][m - 1];
   return `<svg class="${cls}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -1239,7 +1247,7 @@ function vOnboard() {
   const foot = (next, label = 'Continue') => `<div class="flow-foot">${s ? `<button class="btn ghost" data-a="ob" data-v="-1" aria-label="Back">${I.back}</button>` : ''}<button class="btn block" data-a="${next}" data-v="1">${label}</button></div>`;
   const prog = `<div class="flow-top"><div class="progress">${[1, 2, 3].map(i => `<i class="${s >= i ? 'on' : ''}"></i>`).join('')}</div></div>`;
   if (s === 0) return `<div class="flow page"><div class="flow-body" style="justify-content:center"><div class="step" style="justify-content:center;flex:0">
-      <div class="brand">phase.</div>
+      ${LOGO}<div class="brand">phase.</div>
       <h1 style="margin-top:8px">Know your rhythm.</h1>
       <p class="sub" style="font-size:18px">A calm daily check-in that shows how your hormones shape your body and mind, cycle after cycle.</p>
     </div></div>
@@ -1277,7 +1285,7 @@ function vInstall() {
 /* ---------- passcode ---------- */
 function vLock() {
   return `<div class="flow page"><div class="flow-body" style="justify-content:center"><div class="step" style="justify-content:center;flex:0">
-      <div class="brand">phase.</div>
+      ${LOGO}<div class="brand">phase.</div>
       <h1 style="margin-top:8px">Enter your passcode</h1>
       <input type="password" class="date-in" id="pc-unlock" data-enter="unlock" autocomplete="off" aria-label="Passcode">
       <p class="sub" id="pc-err" role="alert"></p>
