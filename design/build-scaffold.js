@@ -3,8 +3,8 @@
 const fs = require('fs');
 const [src, outPath] = process.argv.slice(2);
 const html = fs.readFileSync(src, 'utf8');
-const appCss = html.match(/<style>([\s\S]*?)<\/style>/)[1];
-const fontLink = html.match(/<link href="https:\/\/fonts\.googleapis\.com[^>]+>/)[0];
+// The app self-hosts its fonts in fonts/. The scaffold lives in design/, so point one level up.
+const appCss = html.match(/<style>([\s\S]*?)<\/style>/)[1].replace(/url\(fonts\//g, 'url(../fonts/');
 const appJs = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
 // Minimal browser stubs so the app script can load in Node.
@@ -66,9 +66,6 @@ const page = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>phase. design scaffold</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-${fontLink}
 <style>
 /* =====================================================================
    APP STYLES: copied 1:1 from index.html. Restyle these.

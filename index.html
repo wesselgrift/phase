@@ -9,10 +9,16 @@
 <meta name="apple-mobile-web-app-title" content="phase.">
 <meta name="theme-color" content="#F4F3F0">
 <title>phase.</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/dm-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/source-serif-4.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Self-hosted fonts (latin subset, SIL OFL), so the app makes no third-party requests. */
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:400 600;font-display:swap;src:url(fonts/dm-sans.woff2) format('woff2')}
+@font-face{font-family:'Source Serif 4';font-style:normal;font-weight:200 900;font-display:swap;src:url(fonts/source-serif-4.woff2) format('woff2')}
+@font-face{font-family:'Source Serif 4';font-style:italic;font-weight:200 900;font-display:swap;src:url(fonts/source-serif-4-italic.woff2) format('woff2')}
 :root{
   --bg:#F4F3F0; --card:#FFFFFF; --ink:#141414; --ink2:#4E4C48; --muted:#8B8984; --line:#E6E3DD; --chip:#ECEAE5;
   /* Phase colors mark the ring, chart bands, bars and dots. --period is the stronger red for period UI with white text. */
@@ -82,6 +88,7 @@ a{color:inherit}
 .ring .ph{font-size:17px;fill:var(--ink);font-weight:600}
 .ring .sub{font-size:14px;fill:var(--muted)}
 .center-actions{display:flex;justify-content:center;gap:10px;margin-top:-4px}
+.fine.sure{text-align:center;margin:0 auto;max-width:300px}
 
 /* check-in card */
 .checkin .eyebrow .ic{width:16px;height:16px}
@@ -250,6 +257,8 @@ textarea::placeholder{color:var(--muted)}
 .list{background:var(--card);border-radius:22px;overflow:hidden;margin-top:12px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line);min-height:56px;width:100%;text-align:left}
 .row:last-child{border-bottom:0}
+input.pc-in{border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:inherit;outline:none;border-radius:0}
+input.pc-in:last-child{border-bottom:0}
 .row .r{color:var(--muted);display:flex;align-items:center;gap:10px}
 .row.danger{color:var(--period)}
 .mini-step{display:flex;align-items:center;gap:6px}
@@ -262,6 +271,17 @@ textarea::placeholder{color:var(--muted)}
 .ask{z-index:31;text-align:center}
 .ask p{color:var(--ink2);margin:8px 6px 20px}
 .ask .btn{margin-top:10px}
+.report-bar{display:flex;justify-content:space-between;gap:10px}
+.report .hist{font-size:13.5px}
+.report .hist th,.report .hist td{padding-right:8px;white-space:nowrap}
+.report .hist td:first-child{width:40%;white-space:normal}
+@media print{
+  :root,[data-theme=dark]{--bg:#fff;--card:#fff;--ink:#000;--ink2:#333;--muted:#666;--line:#ccc;--chip:#eee}
+  html,body{background:#fff}
+  .no-print,#overlay,.toast{display:none!important}
+  .screen{padding:0;max-width:none;animation:none;gap:12px}
+  .report .card,.report .stat{border:1px solid var(--line);break-inside:avoid;padding:14px 16px}
+}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 90px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:18px;font-size:14px;z-index:40;animation:rise .3s both;max-width:90vw}
 </style>
 </head>
@@ -289,13 +309,69 @@ const pick = (arr, seed) => arr[hash(seed) % arr.length];
 
 /* ---------- storage ---------- */
 const KEY = 'phase.v1';
-const fresh = () => ({ onboarded: false, settings: { cycleLength: 28, periodLength: 5, theme: 'auto', hormonalBC: false, sample: false }, periods: [], logs: {} });
-let db;
-try { db = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch { db = fresh(); }
+// Bump SCHEMA and extend migrate() when the shape of the stored data changes.
+const SCHEMA = 1;
+const fresh = () => ({ v: SCHEMA, onboarded: false, settings: { cycleLength: 28, periodLength: 5, theme: 'auto', hormonalBC: false, sample: false, lastBackup: null, backupSnooze: null }, periods: [], logs: {} });
+// Brings stored data or a backup from any older version up to the current shape.
+function migrate(data) {
+  if ((data.v || 0) > SCHEMA) throw new Error('newer');
+  const f = fresh();
+  return { ...f, ...data, v: SCHEMA, settings: { ...f.settings, ...data.settings } };
+}
+
+/* Optional passcode: the stored data is AES-GCM encrypted with a key derived from the passcode. */
+const ITER = 310000;
+const canEncrypt = !!(window.crypto && crypto.subtle);
+const b64 = buf => { const a = new Uint8Array(buf); let s = ''; for (let i = 0; i < a.length; i += 8192) s += String.fromCharCode(...a.subarray(i, i + 8192)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function deriveKey(pass, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function newLock(pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  return { key: await deriveKey(pass, salt, ITER), salt, iter: ITER };
+}
+async function seal(json, l) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, l.key, new TextEncoder().encode(json));
+  return JSON.stringify({ enc: 1, iter: l.iter, salt: b64(l.salt), iv: b64(iv), data: b64(data) });
+}
+// Throws when the passcode is wrong.
+async function unseal(raw, pass) {
+  const salt = unb64(raw.salt), key = await deriveKey(pass, salt, raw.iter);
+  const buf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(raw.iv) }, key, unb64(raw.data));
+  return { data: migrate(JSON.parse(new TextDecoder().decode(buf))), lock: { key, salt, iter: raw.iter } };
+}
+
+let db = null;     // null while locked
+let lock = null;   // the passcode key, when a passcode is on
+let sealed = null; // the encrypted data, while locked
+try {
+  const raw = JSON.parse(localStorage.getItem(KEY));
+  if (raw?.enc) sealed = raw; else db = raw ? migrate(raw) : fresh();
+} catch { db = fresh(); }
 let ver = 0;
+// Writes run in order, so a slow encrypted write never lands after a newer one.
+let writing = Promise.resolve();
 function save() {
   ver++;
-  try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { toast('Could not save. Storage may be full or blocked.'); }
+  const json = JSON.stringify(db), l = lock;
+  writing = writing.then(() => (l ? seal(json, l) : json)).then(s => localStorage.setItem(KEY, s))
+    .catch(() => toast('Could not save. Storage may be full or blocked.'));
+}
+
+// Ask the browser not to clear the data when space runs low. Home-screen apps usually get this.
+let persisted = null;
+async function persist() {
+  if (!navigator.storage?.persist) return;
+  try { persisted = (await navigator.storage.persisted()) || (await navigator.storage.persist()); } catch {}
+}
+
+function backupDue() {
+  const st = db.settings, t = today();
+  if (st.sample || (st.backupSnooze && t < st.backupSnooze)) return false;
+  return st.lastBackup ? diff(st.lastBackup, t) >= 30 : Object.keys(db.logs).length >= 14;
 }
 
 /* ---------- content ---------- */
@@ -429,6 +505,11 @@ function M() {
   }
   const recent = gaps.slice(-6);
   const L = recent.length ? Math.round(avg(recent)) : db.settings.cycleLength;
+  // The next start as a range of cycle lengths: shortest to longest recent cycle, at least ±1 day.
+  // With little data the range is wider, because the average is still a guess.
+  const pad = recent.length >= 3 ? 1 : recent.length === 2 ? 2 : 3;
+  const lo = Math.min(L - pad, ...recent), hi = Math.max(L + pad, ...recent);
+  const irregular = recent.length >= 3 && Math.max(...recent) - Math.min(...recent) > 7;
   const lens = ps.filter(p => p.end).map(p => diff(p.start, p.end) + 1).filter(n => n > 0 && n < 15).slice(-6);
   const P = lens.length ? Math.round(avg(lens)) : db.settings.periodLength;
   const last = starts[starts.length - 1] || null;
@@ -443,7 +524,7 @@ function M() {
     late = Math.max(0, day - L);
     nextStart = late ? addDays(t, 1) : addDays(last, L);
   }
-  memo = { ver, t, ps, starts, gaps, L, P, last, ongoing, ranges, day, late, nextStart };
+  memo = { ver, t, ps, starts, gaps, recent, L, lo, hi, irregular, P, last, ongoing, ranges, day, late, nextStart };
   return memo;
 }
 
@@ -593,6 +674,7 @@ function fromYourLog(phase, day) {
 }
 
 /* ---------- ui state ---------- */
+const partOfDay = () => { const h = new Date().getHours(); return h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening'; };
 const ui = { tab: 'today', month: today().slice(0, 7), flow: null, sheet: null, ob: { step: 0, date: addDays(today(), -10), L: 28, P: 5 } };
 
 /* ---------- components ---------- */
@@ -624,8 +706,13 @@ function ring() {
   const info = dayInfo(m.t), ph = PHASES[info.phase];
   let sub;
   if (m.ongoing) sub = `Period · day ${m.day}`;
-  else if (m.late) sub = `Period is ${m.late} day${m.late > 1 ? 's' : ''} late`;
-  else { const n = diff(m.t, m.nextStart); sub = n === 0 ? 'Period may start today' : `Period in ~${n} day${n > 1 ? 's' : ''}`; }
+  else {
+    // Days until the earliest and latest likely start.
+    const a = m.lo - m.day + 1, b = m.hi - m.day + 1;
+    if (b < 0) sub = `Period is ${m.late} day${m.late > 1 ? 's' : ''} late`;
+    else if (a <= 0) sub = 'Period may start any day now';
+    else sub = `Period in ${a}\u2060–\u2060${b} days`;
+  }
   return `<svg class="ring" viewBox="0 0 300 300" role="img" aria-label="Cycle day ${m.day} of about ${L}. ${ph.name} phase. ${sub}.">
     ${segs}${fert}
     <circle cx="${mx}" cy="${my}" r="11" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
@@ -709,13 +796,13 @@ const tagsOf = log => [...(log.feelings || []), ...(log.symptoms || []), ...(log
 
 /* ---------- views ---------- */
 function vToday() {
-  const m = M(), t = m.t, h = new Date().getHours(), log = db.logs[t];
+  const m = M(), t = m.t, log = db.logs[t];
   if (!m.last) return `<main class="screen"><section class="card empty-state"><h2>No period logged yet</h2>
     <p class="lede">Log the first day of your last period to start.</p>
     <button class="btn period" style="margin-top:20px" data-a="periodStart" data-v="${t}">Period started today</button>
     <button class="link" style="display:block;margin:10px auto 0" data-a="tab" data-v="calendar">Pick an earlier day</button></section></main>`;
   const info = dayInfo(t);
-  const part = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening', evening = part === 'evening';
+  const part = partOfDay(), evening = part === 'evening';
   const greet = `Good ${part}.`;
   const label = evening ? 'Evening reflection' : part === 'afternoon' ? 'Afternoon check-in' : 'Morning check-in';
   const ph = PHASES[info.phase];
@@ -776,12 +863,16 @@ function vToday() {
       </div>
     </header>
     ${db.settings.sample ? `<div class="banner"><span>You are looking at sample data.</span><button class="link" data-a="clearSample">Start fresh</button></div>` : ''}
+    ${backupDue() ? `<div class="banner"><span>${db.settings.lastBackup ? `Last backup ${diff(db.settings.lastBackup, t)} days ago.` : 'You have no backup yet.'}</span>
+      <span><button class="link" data-a="snoozeBackup">Later</button><button class="link" data-a="export">Back up</button></span></div>` : ''}
     ${weekStrip()}
     <section class="hero">${ring()}</section>
     <div class="center-actions">
       ${m.ongoing ? `<button class="btn ghost" data-a="periodEnd" data-v="${t}">Period ended today</button>`
                   : `<button class="btn ${m.late || diff(t, m.nextStart) <= 3 ? 'period' : 'ghost'}" data-a="periodStart" data-v="${t}">Period started today</button>`}
     </div>
+    ${m.ongoing ? '' : m.recent.length < 2 ? `<p class="fine sure">A rough estimate for now. It gets more accurate as you log more periods.</p>`
+      : m.irregular ? `<p class="fine sure">Your recent cycles ranged from ${Math.min(...m.recent)} to ${Math.max(...m.recent)} days, so this is a rough estimate.</p>` : ''}
     ${liftCard}
     ${checkin}
     ${phaseCard}
@@ -889,7 +980,7 @@ function vJourney() {
     <div class="top-actions"><button class="icon-btn" data-a="settings" aria-label="Settings">${I.gear}</button></div></header>`;
 
   const stats = `<div class="stats">
-    <div class="stat"><div class="eyebrow">Avg cycle</div><div class="v">${m.L}<small>days</small></div><div class="s">${lens.length ? `range ${Math.min(...lens)}–${Math.max(...lens)}` : 'from your settings'}</div></div>
+    <div class="stat"><div class="eyebrow">Avg cycle</div><div class="v">${m.L}<small>days</small></div><div class="s">${lens.length ? `${m.irregular ? 'irregular · ' : 'range '}${Math.min(...lens)}–${Math.max(...lens)}` : 'from your settings'}</div></div>
     <div class="stat"><div class="eyebrow">Avg period</div><div class="v">${m.P}<small>days</small></div><div class="s">${cycles.length} logged</div></div>
     <div class="stat"><div class="eyebrow">Check-ins</div><div class="v">${nLogs}</div><div class="s">all time</div></div>
     <div class="stat"><div class="eyebrow">Streak</div><div class="v">${streak()}<small>days</small></div><div class="s">keep it going</div></div>
@@ -953,7 +1044,8 @@ function vJourney() {
   const notes = healthNotes(m, cycles);
   const noteCard = notes.length ? `<section class="card note-card"><h3>Worth mentioning to a doctor</h3>
     <ul>${notes.map(n => `<li>${n}</li>`).join('')}</ul>
-    <p class="fine">This is not a diagnosis. See the Learn tab for when to get help.</p></section>` : '';
+    <p class="fine">This is not a diagnosis. See the Learn tab for when to get help.</p>
+    <button class="btn ghost" style="margin-top:14px" data-a="report">Make a doctor summary</button></section>` : '';
 
   const hist = `<section class="card"><h2>Cycle history</h2>
     <table class="hist"><thead><tr><th>Started</th><th>Cycle</th><th>Period</th></tr></thead><tbody>
@@ -1012,7 +1104,7 @@ function vLearn() {
       <li>No period for 90 days or more, when not pregnant</li>
     </ul><p><b>Get urgent help</b> for heavy bleeding with dizziness, fainting, chest pain or shortness of breath.</p></div></details>
     <details><summary>About the predictions</summary><div class="body">
-      <p>The app predicts from the average of your last cycles. Ovulation timing from a calendar alone is weak. Even in regular cycles, it can shift by several days.</p>
+      <p>The app predicts from the average of your last cycles. It shows a range, from your shortest to your longest recent cycle, so you can see how sure the estimate is. Ovulation timing from a calendar alone is weak. Even in regular cycles, it can shift by several days.</p>
       <ul><li>Never use these predictions as birth control.</li>
       <li>The pill, patch, ring and implant usually pause the natural cycle. Turn on “Hormonal birth control” in settings.</li>
       <li>PCOS, breastfeeding, perimenopause and the first years after a first period can all break the usual pattern.</li></ul>
@@ -1031,6 +1123,74 @@ function vLearn() {
       <li><a href="https://jamanetwork.com/journals/jamadermatology/fullarticle/480456" target="_blank" rel="noopener">JAMA Dermatology: Premenstrual acne</a></li>
     </ul><p>This app is for self-awareness, not medical advice.</p></div></details>
   </main>`;
+}
+
+/* ---------- doctor summary ---------- */
+function vReport() {
+  const { m, byPhase, cycles } = journeyData();
+  const logs = Object.entries(db.logs).filter(([d]) => d <= m.t), bc = db.settings.hormonalBC;
+  const lens = cycles.filter(c => c.len).map(c => c.len), notes = healthNotes(m, cycles);
+  const fmtY = s => fmt(s, { day: 'numeric', month: 'short', year: 'numeric' });
+  const PAIN = ['Cramps', 'Back pain', 'Headache'];
+  const rows = cycles.map(c => {
+    const end = c.len ? addDays(c.start, c.len) : addDays(m.t, 1), ls = logs.filter(([d]) => d >= c.start && d < end).map(([, l]) => l);
+    return `<tr><td>${fmtY(c.start)}</td><td>${c.len || 'now'}</td><td>${c.plen}</td>
+      <td>${ls.filter(l => l.flow === 'heavy').length}</td><td>${ls.filter(l => (l.symptoms || []).some(x => PAIN.includes(x))).length}</td></tr>`;
+  }).reverse().join('');
+  const counts = {};
+  logs.forEach(([, l]) => (l.symptoms || []).forEach(x => (counts[x] = (counts[x] || 0) + 1)));
+  const topPhase = x => PHASE_KEYS.reduce((a, k) => ((byPhase[k].counts[x] || 0) > (byPhase[a].counts[x] || 0) ? k : a), PHASE_KEYS[0]);
+  const sym = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([x, n]) =>
+    `<tr><td>${esc(x)}</td><td>${n}</td><td>${Math.round((n / logs.length) * 100)}%</td>${bc ? '' : `<td>${PHASES[topPhase(x)].name}</td>`}</tr>`).join('');
+  const moods = PHASE_KEYS.filter(k => byPhase[k].moods.length).map(k =>
+    `<tr><td>${PHASES[k].name}</td><td>${avg(byPhase[k].moods).toFixed(1)} / 5</td><td>${byPhase[k].moods.length}</td></tr>`).join('');
+  return `<main class="screen report">
+    <div class="report-bar no-print"><button class="btn ghost" data-a="reportClose" aria-label="Back">${I.back}</button>
+      <button class="btn" data-a="print">Print or save as PDF</button></div>
+    <header class="top"><div><div class="eyebrow">phase. · made ${fmtY(m.t)}</div><h1 class="hello">Cycle summary</h1>
+      ${cycles.length ? `<p class="lede">${fmtY(cycles[0].start)} to ${fmtY(m.t)} · ${cycles.length} periods · ${logs.length} daily check-ins</p>` : ''}</div></header>
+    ${bc ? '<p class="lede">Uses hormonal birth control. Bleeds may be withdrawal bleeds.</p>' : ''}
+    <div class="stats">
+      <div class="stat"><div class="eyebrow">Avg cycle</div><div class="v">${m.L}<small>days</small></div><div class="s">${lens.length ? `range ${Math.min(...lens)}–${Math.max(...lens)}` : 'not enough data'}</div></div>
+      <div class="stat"><div class="eyebrow">Avg period</div><div class="v">${m.P}<small>days</small></div><div class="s">${m.irregular ? 'cycles irregular' : `${cycles.length} logged`}</div></div>
+    </div>
+    ${notes.length ? `<section class="card note-card"><h3>Worth mentioning</h3><ul>${notes.map(n => `<li>${n}</li>`).join('')}</ul></section>` : ''}
+    <section class="card"><h2>Cycle history</h2>
+      <table class="hist"><thead><tr><th>Started</th><th>Cycle</th><th>Period</th><th>Heavy</th><th>Pain</th></tr></thead><tbody>${rows}</tbody></table>
+      <p class="fine">All numbers are days. Heavy: days with heavy flow. Pain: check-ins with cramps, back pain or headache.</p></section>
+    ${sym ? `<section class="card"><h2>Symptoms</h2>
+      <table class="hist"><thead><tr><th>Symptom</th><th>Days</th><th>Of check-ins</th>${bc ? '' : '<th>Most in</th>'}</tr></thead><tbody>${sym}</tbody></table></section>` : ''}
+    ${moods && !bc ? `<section class="card"><h2>Mood by phase</h2>
+      <table class="hist"><thead><tr><th>Phase</th><th>Average mood</th><th>Check-ins</th></tr></thead><tbody>${moods}</tbody></table></section>` : ''}
+    <p class="fine" style="padding:0 6px">Self-reported in phase., a private cycle tracker. Phases are estimated from period dates. This is not a diagnosis.</p>
+  </main>`;
+}
+
+/* ---------- calendar file and CSV ---------- */
+// The next 6 expected periods as all-day events. UIDs are stable, so importing again updates them.
+function icsFile() {
+  const m = M(), d8 = s => s.replace(/-/g, ''), stamp = new Date().toISOString().replace(/[-:]|\.\d+/g, '');
+  const events = Array.from({ length: 6 }, (_, i) => {
+    const s = addDays(m.nextStart, i * m.L);
+    return ['BEGIN:VEVENT', `UID:phase-period-${i}@phase.local`, `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${d8(s)}`, `DTEND;VALUE=DATE:${d8(addDays(s, m.P))}`, 'SUMMARY:Period expected',
+      `DESCRIPTION:Estimate from phase. Likely start ${fmtShort(addDays(s, m.lo - m.L))} to ${fmtShort(addDays(s, m.hi - m.L))}. Not birth control.`,
+      'TRANSP:TRANSPARENT', 'END:VEVENT'];
+  });
+  // Lines over 75 bytes must be folded: continue on the next line after a space.
+  const fold = l => l.match(/.{1,73}/g).join('\r\n ');
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//phase.//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:phase.', ...events.flat(), 'END:VCALENDAR'].map(fold).join('\r\n') + '\r\n';
+}
+// One row per check-in. The byte order mark makes Excel read the text as UTF-8.
+function csvFile() {
+  const cell = v => (/[",\n]/.test(v = String(v ?? '')) ? `"${v.replace(/"/g, '""')}"` : v);
+  const head = ['date', 'cycle_day', 'phase', 'period', 'mood_1_5', 'energy_1_5', 'flow', 'feelings', 'symptoms', 'note'];
+  const rows = Object.keys(db.logs).sort().map(d => {
+    const l = db.logs[d], f = dayInfo(d);
+    return [d, f?.day ?? '', db.settings.hormonalBC ? '' : PHASES[f?.phase]?.name ?? '', f?.loggedPeriod ? 'yes' : 'no', l.mood, l.energy, l.flow,
+      (l.feelings || []).join('; '), (l.symptoms || []).join('; '), l.note].map(cell).join(',');
+  });
+  return '\ufeff' + [head.join(','), ...rows].join('\r\n');
 }
 
 const TABS = [['today', 'Today', I.today], ['calendar', 'Calendar', I.cal], ['journey', 'Journey', I.journey], ['learn', 'Learn', I.learn]];
@@ -1058,6 +1218,31 @@ function vOnboard() {
   return `<div class="flow" style="position:static;min-height:100vh">${prog}<div class="flow-body"><div class="step" key="${s}">${body}</div></div>${s === 3 ? foot('obDone', 'Start') : foot('ob')}</div>`;
 }
 
+/* ---------- passcode ---------- */
+function vLock() {
+  return `<div class="flow" style="position:static;min-height:100vh"><div class="flow-body" style="justify-content:center"><div class="step" style="justify-content:center;flex:0">
+      <div class="brand">phase.</div>
+      <h1 style="margin-top:8px">Enter your passcode</h1>
+      <input type="password" class="date-in" id="pc-unlock" data-enter="unlock" autocomplete="off" aria-label="Passcode">
+      <p class="sub" id="pc-err" role="alert"></p>
+    </div></div>
+    <div class="flow-foot" style="flex-direction:column;align-items:center"><button class="btn block" data-a="unlock">Unlock</button>
+    <button class="link" data-a="forgot">Forgot passcode?</button></div></div>`;
+}
+function vPasscode() {
+  return `<div class="backdrop" data-a="closeSheet"></div><div class="sheet" role="dialog" aria-label="Passcode">
+    <div class="grab"></div><h2>${lock ? 'Change passcode' : 'Set a passcode'}</h2>
+    <div class="meta">Your data will be encrypted on this device.</div>
+    <div class="list">
+      <input type="password" class="row pc-in" id="pc-new" placeholder="New passcode" autocomplete="new-password" aria-label="New passcode">
+      <input type="password" class="row pc-in" id="pc-rep" placeholder="Repeat passcode" autocomplete="new-password" aria-label="Repeat passcode" data-enter="pcSave">
+    </div>
+    <p class="fine" id="pc-err" role="alert" style="padding:0 6px;color:var(--period)"></p>
+    <p class="fine" style="padding:0 6px">If you forget it, nobody can recover your data. Export a backup first.</p>
+    <button class="btn block" style="margin-top:16px" data-a="pcSave">${lock ? 'Save passcode' : 'Turn on passcode'}</button>
+  </div>`;
+}
+
 /* ---------- check-in flow ---------- */
 const STEPS = ['mood', 'feelings', 'energy', 'body', 'reflect', 'done'];
 function openFlow(date) {
@@ -1071,7 +1256,7 @@ function vFlow() {
   const when = isToday ? '' : `<p class="sub">${fmtLong(f.date)}</p>`;
   let body, next = `<button class="btn block" data-a="fl" data-v="next">Continue</button>`;
   if (step === 'mood') {
-    body = `${when}<h1>How are you feeling${isToday ? ' today' : ''}?</h1>
+    body = `${when}<h1>${isToday ? `How are you feeling this ${partOfDay()}?` : 'How did you feel?'}</h1>
       <div class="faces">${MOODS.map((n, i) => `<button class="${d.mood === i + 1 ? 'on' : ''}" data-a="flMood" data-v="${i + 1}">${face(i + 1, '')}${n}</button>`).join('')}</div>`;
     next = `<button class="btn block" data-a="fl" data-v="next" ${d.mood ? '' : 'disabled'}>Continue</button>`;
   }
@@ -1146,17 +1331,27 @@ function vSettings() {
       <div class="row"><span>Hormonal birth control</span>${seg('hormonalBC', [[false, 'No'], [true, 'Yes']])}</div>
     </div>
     <p class="fine" style="padding:0 6px">Auto turns dark in the evening. After two logged periods, the app uses your real averages instead of these numbers.</p>
+    ${canEncrypt ? `<div class="list">${lock
+      ? `<button class="row" data-a="pcSetup"><span>Change passcode</span><span class="r">${I.right}</span></button>
+         <button class="row" data-a="pcOff"><span>Turn off passcode</span></button>`
+      : `<button class="row" data-a="pcSetup"><span>Passcode lock</span><span class="r">Off ${I.right}</span></button>`}</div>` : ''}
     <div class="list">
-      <button class="row" data-a="export"><span>Export backup</span><span class="r">.json</span></button>
+      <button class="row" data-a="report"><span>Doctor summary</span><span class="r">Print or PDF ${I.right}</span></button>
+      <button class="row" data-a="ics"><span>Add predictions to calendar</span><span class="r">.ics</span></button>
+      <button class="row" data-a="csv"><span>Export check-ins</span><span class="r">.csv</span></button>
+    </div>
+    <div class="list">
+      <button class="row" data-a="export"><span>Export backup</span><span class="r">${st.lastBackup ? `Last: ${fmtShort(st.lastBackup)}` : '.json'}</span></button>
       <button class="row" data-a="import"><span>Import backup</span></button>
       <button class="row danger" data-a="reset"><span>Delete all data</span></button>
     </div>
+    <p class="fine" style="padding:0 6px">${persisted ? 'This browser keeps your data even when storage runs low.' : 'This browser may clear your data when storage runs low. On iPhone, add the app to your Home Screen. Keep a backup either way.'}</p>
   </div>`;
 }
 
 /* ---------- render ---------- */
 function applyTheme() {
-  const t = db.settings.theme, h = new Date().getHours();
+  const t = db?.settings.theme || 'auto', h = new Date().getHours();
   const dark = t === 'dark' || (t === 'auto' && (h >= 18 || h < 6));
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   document.querySelector('meta[name=theme-color]').content = dark ? '#000000' : '#F4F3F0';
@@ -1164,10 +1359,11 @@ function applyTheme() {
 function render() {
   applyTheme();
   const app = document.getElementById('app'), ov = document.getElementById('overlay');
+  if (!db) { app.innerHTML = vLock(); ov.innerHTML = ui.ask ? vAsk() : ''; document.body.classList.toggle('locked', !!ui.ask); return; }
   if (!db.onboarded) { app.innerHTML = vOnboard(); ov.innerHTML = ''; document.body.classList.remove('locked'); return; }
   const views = { today: vToday, calendar: vCalendar, journey: vJourney, learn: vLearn };
-  app.innerHTML = views[ui.tab]() + vTabbar();
-  ov.innerHTML = (ui.flow ? `<div class="flow">${vFlow()}</div>` : ui.sheet === 'settings' ? vSettings() : ui.sheet ? vDaySheet(ui.sheet) : '') + (ui.ask ? vAsk() : '');
+  app.innerHTML = ui.report ? vReport() : views[ui.tab]() + vTabbar();
+  ov.innerHTML = (ui.flow ? `<div class="flow">${vFlow()}</div>` : ui.sheet === 'settings' ? vSettings() : ui.sheet === 'passcode' ? vPasscode() : ui.sheet ? vDaySheet(ui.sheet) : '') + (ui.ask ? vAsk() : '');
   // Slide a sheet in only when it first opens, not when its content changes.
   if (ui.sheet && ui.sheet !== ui.shownSheet) ov.querySelectorAll('.backdrop,.sheet').forEach(el => el.classList.add('anim'));
   ui.shownSheet = ui.sheet;
@@ -1211,6 +1407,13 @@ const vAsk = () => `<div class="backdrop ask-backdrop anim" data-a="askNo"></div
     <button class="btn block ghost" data-a="askNo">Cancel</button>
   </div>`;
 
+function download(name, text, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 /* ---------- actions ---------- */
 const A = {
   tab(v) { ui.tab = v; ui.sheet = null; render(); window.scrollTo(0, 0); },
@@ -1229,7 +1432,7 @@ const A = {
     Object.assign(db.settings, { cycleLength: ui.ob.L, periodLength: ui.ob.P });
     db.periods = [{ start: ui.ob.date }];
     if (diff(ui.ob.date, today()) >= ui.ob.P) db.periods[0].end = addDays(ui.ob.date, ui.ob.P - 1);
-    db.onboarded = true; save(); render();
+    db.onboarded = true; save(); render(); persist();
   },
   sample() { db = sampleData(); save(); ui.tab = 'today'; render(); },
   clearSample() {
@@ -1277,15 +1480,61 @@ const A = {
     save(); render();
   },
   export() {
-    const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `phase-backup-${today()}.json`; a.click();
-    URL.revokeObjectURL(a.href);
+    if (!db.settings.sample) Object.assign(db.settings, { lastBackup: today(), backupSnooze: null });
+    download(`phase-backup-${today()}.json`, JSON.stringify(db, null, 2), 'application/json');
+    save(); render();
   },
+  report() { ui.report = true; ui.sheet = null; render(); window.scrollTo(0, 0); },
+  reportClose() { ui.report = false; render(); window.scrollTo(0, 0); },
+  print() { window.print(); },
+  ics() {
+    if (!M().last) return toast('Log a period first.');
+    ask('Add predictions to your calendar?', 'This saves a calendar file with your next 6 expected periods. If your calendar syncs to an online account, these events will sync too.', 'Save calendar file', () =>
+      download('phase-predictions.ics', icsFile(), 'text/calendar'));
+  },
+  csv() {
+    if (!Object.keys(db.logs).length) return toast('No check-ins to export yet.');
+    download(`phase-check-ins-${today()}.csv`, csvFile(), 'text/csv');
+  },
+  snoozeBackup() { db.settings.backupSnooze = addDays(today(), 7); save(); render(); },
   import() { document.getElementById('importFile').click(); },
   reset() {
     ask('Delete all data?', 'This removes every period and check-in from this device. It cannot be undone. Export a backup first if you want to keep them.', 'Delete everything', () => {
-      db = fresh(); save(); ui.sheet = null; ui.ob.step = 0;
+      db = fresh(); lock = null; save(); ui.sheet = null; ui.ob.step = 0;
+    });
+  },
+
+  async unlock() {
+    const input = document.getElementById('pc-unlock'), err = document.getElementById('pc-err');
+    if (!input.value) return input.focus();
+    err.textContent = 'Unlocking…';
+    try {
+      const r = await unseal(sealed, input.value);
+      db = r.data; lock = r.lock; sealed = null; ver++;
+      render(); persist();
+    } catch {
+      err.textContent = 'Wrong passcode. Try again.';
+      input.value = ''; input.focus();
+    }
+  },
+  forgot() {
+    ask('Delete all data?', 'Without the passcode, nobody can open your data. This deletes it from this device so you can start again. You can then import a backup if you have one.', 'Delete everything', () => {
+      sealed = null; lock = null; db = fresh(); save(); ui.ob.step = 0;
+    });
+  },
+  pcSetup() { ui.sheet = 'passcode'; render(); document.getElementById('pc-new').focus(); },
+  async pcSave() {
+    const a = document.getElementById('pc-new').value, b = document.getElementById('pc-rep').value, err = document.getElementById('pc-err');
+    if (a.length < 4) return (err.textContent = 'Use at least 4 characters.');
+    if (a !== b) return (err.textContent = 'The passcodes do not match.');
+    const on = !!lock;
+    lock = await newLock(a);
+    save(); ui.sheet = 'settings'; render();
+    toast(on ? 'Passcode changed.' : 'Passcode on. Your data is now encrypted.');
+  },
+  pcOff() {
+    ask('Turn off the passcode?', 'Your data will be stored on this device without encryption.', 'Turn off passcode', () => {
+      lock = null; save(); toast('Passcode off.');
     });
   },
   askYes() { const f = ui.ask.onYes; ui.ask = null; f(); render(); },
@@ -1295,6 +1544,9 @@ const A = {
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]');
   if (el && A[el.dataset.a]) A[el.dataset.a](el.dataset.v, el);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.dataset.enter) { e.preventDefault(); A[e.target.dataset.enter](); }
 });
 document.addEventListener('input', e => {
   if (e.target.id === 'energy') { ui.flow.d.energy = Number(e.target.value); document.getElementById('energy-label').textContent = ENERGY[ui.flow.d.energy - 1]; }
@@ -1309,17 +1561,31 @@ document.getElementById('importFile').addEventListener('change', async e => {
   const file = e.target.files[0];
   e.target.value = '';
   if (!file) return;
+  let data;
   try {
-    const data = JSON.parse(await file.text());
-    if (!Array.isArray(data.periods) || typeof data.logs !== 'object') throw new Error();
-    ask('Replace your data with this backup?', `The backup has ${data.periods.length} periods and ${Object.keys(data.logs).length} check-ins. Your current data will be replaced.`, 'Replace my data', () => {
-      db = { ...fresh(), ...data, settings: { ...fresh().settings, ...data.settings }, onboarded: true };
-      save(); ui.sheet = null; toast('Backup imported.');
-    });
-  } catch { toast('That file is not a valid backup.'); }
+    data = JSON.parse(await file.text());
+    if (!Array.isArray(data.periods) || !data.logs || typeof data.logs !== 'object') throw new Error();
+    data = migrate(data);
+  } catch (err) {
+    return toast(err.message === 'newer' ? 'This backup comes from a newer version of phase. Update the app first.' : 'That file is not a valid backup.');
+  }
+  ask('Replace your data with this backup?', `The backup has ${data.periods.length} periods and ${Object.keys(data.logs).length} check-ins. Your current data will be replaced.`, 'Replace my data', () => {
+    db = { ...data, onboarded: true };
+    save(); ui.sheet = null; toast('Backup imported.');
+  });
 });
-// Re-check the time-of-day theme and the date when the app comes back into view.
-document.addEventListener('visibilitychange', () => { if (!document.hidden && !ui.flow) render(); });
+// Lock again after 5 minutes away. Otherwise re-check the time-of-day theme and the date.
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (lock && hiddenAt && Date.now() - hiddenAt > 5 * 60e3) {
+    writing.then(() => {
+      sealed = JSON.parse(localStorage.getItem(KEY));
+      db = null; lock = null; Object.assign(ui, { flow: null, sheet: null, ask: null });
+      render();
+    });
+  } else if (!ui.flow) render();
+});
 
 /* ---------- sample data ---------- */
 function sampleData() {
@@ -1368,6 +1634,9 @@ function sampleData() {
 }
 
 render();
+if (db?.onboarded || sealed) persist();
+// Offline support. Service workers only run on https or localhost.
+if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
